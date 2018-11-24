@@ -1,46 +1,26 @@
 # Animation starter code from Course Notes
 
 from tkinter import *
+import os
+import random
+import copy
+import logic
 
 ####################################
 # customize these functions
 ####################################
 
 def init(data):
-    # load data.xyz as appropriate
     data.mode = "start"
-    loadImages(data) # always load images in init!
-
-
-# from course notes
-def loadImages(data):
-    tiles = 38 
-    data.images = [ ]
-    for tile in range(tiles):
-        filename = "Regular/%d.png" % tile
-        # resizing code from https://stackoverflow.com/questions/6582387/image-resize-under-photoimage
-        data.images.append(PhotoImage(file=filename))
-
-    data.board = []
-    heightLeft = data.height - 100
-    heightRight = data.height - 100
-    widthTop = data.width - 105
-    widthBot = data.width - 105
-    for i in range(14):
-        # left player
-        data.board.append((data.width / 10, heightLeft, data.images[0]))
-        heightLeft -= 45
-        # right player
-        data.board.append((9 * data.width / 10, heightRight, data.images[0]))
-        heightRight -= 45
-        # top player
-        data.board.append((widthTop, data.height / 12, data.images[0]))
-        widthTop -= 45
-        # bottom player (you)
-        imagey = random.randint(1, 37)
-        data.board.append((widthBot, 11 * data.height / 12, data.images[imagey]))
-        widthBot -= 45
-
+    data.images = []
+    data.drawPile = [] 
+    data.highlighted = []
+    data.highlightedPieces = []
+    data.handL = []
+    data.handR = []
+    data.handT = []
+    data.handYou = []
+    loadImages(data) 
 
 def mousePressed(event, data):
     # use event.x and event.y
@@ -62,8 +42,114 @@ def redrawAll(canvas, data):
         canvas.create_text(data.width / 2, data.height / 2, text="press p to play")
     elif data.mode == "play": playRedrawAll(canvas, data)
 
+def loadImages(data):
+    path = os.getcwd() + "/Images/"
+    for filename in os.listdir(path):
+        if filename == ".DS_Store": # ignore this
+            continue
+        elif filename == "back.png": # don't add to draw pile, but keep track
+            data.backPng = PhotoImage(file=path + filename)
+            continue
+        filepathName = path + filename
+        # store in tuple, image, filename. filename is for ex. "2bamboo.png"
+        data.images.append((PhotoImage(file=filepathName), filename)) 
+    data.drawPile = copy.copy(data.images * 4) # 4 of each tile
+
+    heightLeft = data.height / 2
+    heightRight = data.height / 2
+    widthTop = data.width / 2
+    widthBot = data.width / 2
+
+    # 13 per hand initially, 14 for the first player
+    altMult = -1 # starts adding from center and then outwards
+    for i in range(14):
+
+        # left player
+        randInd = random.randint(0,len(data.drawPile) - 1)
+        data.handL.append([data.width / 10, heightLeft, data.drawPile[randInd], False])
+        heightLeft += 45 * altMult * i
+        altMult *= -1
+        data.drawPile.pop(randInd)
+
+    altMult = -1
+    for i in range(14):
+        # right player
+        randInd = random.randint(0,len(data.drawPile) - 1)
+        data.handR.append([9 * data.width / 10, heightRight, data.drawPile[randInd], False])
+        heightRight += 45 * altMult * i
+        altMult *= -1
+        data.drawPile.pop(randInd)
+
+    altMult = -1
+    for i in range(14):
+        # top player
+        randInd = random.randint(0,len(data.drawPile) - 1)
+        data.handT.append([widthTop, data.height / 12, data.drawPile[randInd], False])
+        widthTop += 45 * altMult * i
+        altMult *= -1
+        data.drawPile.pop(randInd)
+
+    altMult = -1
+    for i in range(15):
+        # bottom player (you)
+        randInd = random.randint(0,len(data.drawPile) - 1)
+        data.handYou.append([widthBot, 11 * data.height / 12, data.drawPile[randInd], False])
+        widthBot += 45 * altMult * i
+        altMult *= -1
+        data.drawPile.pop(randInd)
+
+#---------------------- Play Mode -------------------------- #
+
 def playMousePressed(event, data):
-    pass
+    pressTile(event, data)
+     
+def pressTile(event, data):
+    for hand in [data.handYou,data.handT,data.handR,data.handL]:
+        #piecesToRemove = []
+        #namesToRemove = []
+        for piece in hand:
+            x1 = piece[0] - 15
+            y1 = piece[1] - 20
+            x2 = piece[0] + 15
+            y2 = piece[1] + 20
+            if x1 <= event.x <= x2 and y1 <= event.y <= y2:
+                piece[3] = not piece[3]
+                if piece[3] == True:
+                    """
+                    # add e.g. "1bamboo.png"
+                    data.highlighted.append(piece[2][1])
+                    data.highlightedPieces.append(piece)
+                    """
+                    piece[1] -= 20 # highlighted pieces are shifted up
+                elif piece[3] == False:
+                    """
+                    data.highlighted.remove(piece[2][1])
+                    data.highlightedPieces.remove(piece)
+                    """
+                    piece[1] += 20 # shift down when unhighlighted
+        """
+        meld = False
+        if logic.isPong(data.highlighted) or logic.isChow(data.highlighted):
+            meld = True
+            for i in range(3):
+                piecesToRemove.append(data.highlightedPieces[i])
+                namesToRemove.append(data.highlighted[i])
+        if logic.isKong(data.highlighted):
+            meld = True
+            for i in range(4):
+                piecesToRemove.append(data.highlightedPieces[i])
+                namesToRemove.append(data.highlighted[i])
+        if meld:
+            print(namesToRemove)
+            for i in range(len(namesToRemove)):
+                data.highlighted.remove(namesToRemove[i])
+            for i in range(len(piecesToRemove)):
+                removeInd = hand.index(piecesToRemove[i])
+                hand.pop(removeInd)
+        piecesToRemove = []
+        namesToRemove = []
+        """
+
 
 def playKeyPressed(event,data):
     pass
@@ -71,13 +157,35 @@ def playKeyPressed(event,data):
 def playTimerFired(data):
     pass
 
-import random
 def playRedrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height, fill="green")
     canvas.create_text(data.width / 2, data.height / 2, text="you playin")
-    for piece in data.board:
-        canvas.create_rectangle(piece[0] - 17, piece[1] - 22, piece[0] + 17, piece[1] + 22,  fill ="white")
-        canvas.create_image(piece[0], piece[1], image=piece[2] )
+    for hand in [data.handT,data.handR,data.handL]:
+        for piece in hand:
+            pX = piece[0]
+            pY = piece[1]
+            threeDTileBack(canvas, pX, pY)
+            canvas.create_image(pX, pY, image=data.backPng)
+    for piece in data.handYou:
+        pX = piece[0]
+        pY = piece[1]
+        threeDTile(canvas, pX, pY)
+        canvas.create_image(pX, pY, image=piece[2][0])
+
+# creates 3d appearing mahjong piece 
+def threeDTile(canvas, pX, pY):
+    canvas.create_rectangle(pX - 12, pY - 28, pX + 22, pY + 18,  fill ="red", width = 0)
+    canvas.create_rectangle(pX - 14, pY - 25, pX + 20, pY + 19,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 15, pY - 24, pX + 19, pY + 20,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 16, pY - 23, pX + 18, pY + 21,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 17, pY - 22, pX + 17, pY + 22,  fill ="white", width =0)
+
+# creates 3d appearing mahjong piece 
+def threeDTileBack(canvas, pX, pY):
+    canvas.create_rectangle(pX - 11, pY - 23, pX + 18, pY + 17,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 12, pY - 22, pX + 17, pY + 18,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 13, pY - 21, pX + 16, pY + 19,  fill ="white", width = 0)
+    canvas.create_rectangle(pX - 14, pY - 20, pX + 15, pY + 20,  fill ="white", width =0)
     
 
 ####################################
