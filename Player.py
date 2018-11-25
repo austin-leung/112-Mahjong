@@ -12,31 +12,64 @@ class Player(object):
 		self.discarded = []
 		self.highlightedPieces = []
 
+	# returns True if you can pong the tile that is thrown out
+	def canPong(self, data, discTile):
+		tileFreq = 0
+		ind = 0
+		for myTile in self.tiles:
+			if discTile[2][1] == myTile[2][1]:
+				tileFreq += 1
+				if tileFreq == 1:
+					data.firstPongTile = myTile
+			if tileFreq == 2:
+				data.secondPongTile = myTile
+				return True
+			ind += 1
+		return False
 
-	# draws a tile from the available tiles
-	"""
-	def drawTile(self, availableTiles):
-		tileIndex = random.randint(0, len(availableTiles) - 1)
-		drawnTile = availableTiles.pop(tileIndex)
-		self.tiles.append(drawnTile)"""
-
-	# def setTiles(self):
-	# 	altMult = 1
-	# 	for i in range(1,len(self.tiles) + 1):
-	# 		# right player
-	# 		self.tiles.append([8.5 * data.width / 10, heightRight, data.drawPile[randInd], False])
-	# 		heightRight += 40 * altMult * i
-	# 		altMult *= -1
-	# 		data.drawPile.pop(randInd)
-
-	# discards the chosen tile
-	def discardTile(self):
-		self.tiles.remove(self.highlightedPieces[0])
-		self.discarded.append(self.highlightedPieces[0])
-		Player.discPile.append(self.highlightedPieces[0])
-		self.highlightedPieces = []
-
-
+	# returns True if you can chow the tile that is thrown out
+	def canChow(self, data, discTile):
+		discName = discTile[2][1]
+		if discName[0] not in "0123456789":
+			return False
+		minusTwo = str(int(discName[0]) - 2) +  discName[1:]
+		minusOne = str(int(discName[0]) - 1) +  discName[1:]
+		plusOne = str(int(discName[0]) + 1) +  discName[1:]
+		plusTwo = str(int(discName[0]) + 2) +  discName[1:]
+		b1 = False
+		b2 = False
+		for myTile in self.tiles:
+			if myTile[2][1] == minusTwo:
+				b1 = True
+				data.firstChowTile = myTile
+			if myTile[2][1] == minusOne:
+				b2 = True
+				data.secondChowTile = myTile
+		if b1 and b2:
+			return True
+		b3 = False
+		b4 = False
+		for myTile in self.tiles:
+			if myTile[2][1] == minusOne:
+				b3 = True
+				data.firstChowTile = myTile
+			if myTile[2][1] == plusOne:
+				b4 = True
+				data.secondChowTile = myTile
+		if b3 and b4:
+			return True
+		b5 = False
+		b6 = False
+		for myTile in self.tiles:
+			if myTile[2][1] == plusOne:
+				b5 = True
+				data.firstChowTile = myTile
+			if myTile[2][1] == plusTwo:
+				b6 = True
+				data.secondChowTile = myTile
+		if b5 and b6:
+			return True
+		return False
 
 	# takes three tiles from hand and makes it a meld
 	def makeMeld(self, tileInd0, tileInd1, tileInd2):
@@ -48,6 +81,8 @@ class Player(object):
 			poppedLst.append(self.tiles.pop(ind))
 		for element in poppedLst:
 			self.melds.append(element)
+
+
 
 
 	

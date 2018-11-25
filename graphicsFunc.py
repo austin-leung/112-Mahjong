@@ -48,7 +48,8 @@ def initialHands(data):
     for hand in data.turnOrder:
         hand.initialHand(data)
 
-def pressTile(event, data):
+def tilePressed(event, data):
+    i = 0
     for piece in data.turnOrder[data.turnInd].tiles:
         x1 = piece[0] - 15
         y1 = piece[1] - 20
@@ -57,7 +58,7 @@ def pressTile(event, data):
         if x1 <= event.x <= x2 and y1 <= event.y <= y2:
             piece[3] = not piece[3]
             if piece[3] == True:
-                data.turnOrder[data.turnInd].highlightedPieces.append(piece)
+                data.turnOrder[data.turnInd].highlightedPieces.append(i)
                 """
                 # add e.g. "1bamboo.png"
                 data.highlighted.append(piece[2][1])
@@ -65,11 +66,12 @@ def pressTile(event, data):
                 """
                 piece[1] -= 20 # highlighted pieces are shifted up
             elif piece[3] == False:
-                data.turnOrder[data.turnInd].highlightedPieces.remove(piece)
+                data.turnOrder[data.turnInd].highlightedPieces.remove(i)
                 """
                 data.highlighted.remove(piece[2][1])
                 """
                 piece[1] += 20 # shift down when unhighlighted
+        i += 1
     """
     meld = False
     if logic.isPong(data.highlighted) or logic.isChow(data.highlighted):
@@ -93,12 +95,12 @@ def pressTile(event, data):
     namesToRemove = []
     """
 # discards highlighted tile if you click on the discard button, changes turn, next draws
-def discardHighl(event, data):
+def discardPressed(event, data):
     # can only discard one piece
     if len(data.turnOrder[data.turnInd].highlightedPieces) != 1:
         return
     elif event.x > data.width - 140 and event.y > data.height - 30:
-        data.turnOrder[data.turnInd].discardTile()
+        data.turnOrder[data.turnInd].discardTile(data)
         data.turnOrder[data.turnInd].reorganizeTiles(data)
         data.turnInd += 1
         if data.turnInd >= 4:
@@ -134,3 +136,107 @@ def discardButton(canvas, data):
     canvas.create_rectangle(data.width - 140, data.height - 30, data.width, data.height, fill = "pink")
     canvas.create_text(data.width - 5, data.height - 5, text="Discard chosen tile", font = "Arial 15", \
         fill = "Gray", anchor = "se")
+
+# draw pong
+def pongRedrawAll(canvas, data):
+    # background box
+    canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
+        2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
+    # pong option text
+    texty = data.pongOptHand.name + " can pong "
+    canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 15", \
+        fill = "Gray")
+    threeDTile(canvas, data.width / 2 + 80, 6.3 * data.height / 10)
+    canvas.create_image(data.width / 2 + 80, 6.3 * data.height / 10, image = data.pongOptTile[2][0])
+    # pong button
+    canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
+        data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
+    canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Pong!", font = "Arial 15", \
+        fill = "Gray")
+    # skip button
+    canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
+        2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
+    canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
+        fill = "Gray")
+
+# key pressed pong
+def pongMousePressed(event, data):
+    # press Pong!
+    if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
+    and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
+        # add discarded tile to meld
+        data.pongOptHand.melds.append([None, None, data.pongOptTile[2], False])
+        # add first pong tile in hand to meld and remove from hand
+        for tile in  data.pongOptHand.tiles:
+            if tile[2][1] == data.firstPongTile[2][1]: # only compare by tile name
+                data.pongOptHand.tiles.remove(tile)
+                break
+        data.pongOptHand.melds.append([None, None, data.firstPongTile[2], False])
+        # add second pong tile in hand to meld and remove from hand
+        for tile in  data.pongOptHand.tiles:
+            if tile[2][1] == data.secondPongTile[2][1]: # only compare by tile name
+                data.pongOptHand.tiles.remove(tile)
+                break
+        data.pongOptHand.melds.append([None, None, data.secondPongTile[2], False])
+        data.mode = "play"
+        data.pongOptHand.reorganizeTiles(data)
+        player.Player.discPile.pop()
+        data.turnInd = data.turnOrder.index(data.pongOptHand)
+    # press Skip
+    elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
+    and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
+        data.mode = "play"
+
+# draw chow
+def chowRedrawAll(canvas, data):
+    # background box
+    canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
+        2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
+    # pong option text
+    texty = data.chowOptHand.name + " can chow "
+    canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 15", \
+        fill = "Gray")
+    threeDTile(canvas, data.width / 2 + 80, 6.3 * data.height / 10)
+    canvas.create_image(data.width / 2 + 80, 6.3 * data.height / 10, image = data.chowOptTile[2][0])
+    # chow button
+    canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
+        data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
+    canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Chow!", font = "Arial 15", \
+        fill = "Gray")
+    # skip button
+    canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
+        2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
+    canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
+        fill = "Gray")
+
+# key pressed chow
+def chowMousePressed(event, data):
+    # press Chow!
+    if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
+    and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
+        print(data.firstChowTile, "first")
+        print(data.secondChowTile, "second")
+        print(data.chowOptHand.tiles, "the hand tiles")
+        # add discarded tile to meld
+        data.chowOptHand.melds.append([None, None, data.chowOptTile[2], False])
+        # add first chow tile in hand to meld and remove from hand
+        for tile in data.chowOptHand.tiles:
+            if tile[2][1] == data.firstChowTile[2][1]: # only compare by tile name
+                data.chowOptHand.tiles.remove(tile)
+                break
+        data.chowOptHand.melds.append([None, None, data.firstChowTile[2], False])
+        # add second chow tile in hand to meld and remove from hand
+        for tile in data.chowOptHand.tiles:
+            if tile[2][1] == data.secondChowTile[2][1]: # only compare by tile name
+                data.chowOptHand.tiles.remove(tile)
+                break
+        data.chowOptHand.melds.append([None, None, data.secondChowTile[2], False]) 
+        data.mode = "play"
+        data.chowOptHand.reorganizeTiles(data)
+        player.Player.discPile.pop()
+        data.turnInd = data.turnOrder.index(data.chowOptHand)
+    # press Skip
+    elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
+    and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
+        data.mode = "play"
+

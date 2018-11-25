@@ -10,7 +10,7 @@ import playerB
 import playerR
 import graphicsFunc
 
-# ---------------------- Control Center -------------------------- #
+# ---------------------- Control Center ------------------------- #
 
 def init(data):
     data.mode = "start"
@@ -28,9 +28,10 @@ def init(data):
     graphicsFunc.initialHands(data)
     graphicsFunc.loadBack(data)
 
-
 def mousePressed(event, data):
     if data.mode == "play": playMousePressed(event, data)
+    elif data.mode == "pong": graphicsFunc.pongMousePressed(event, data)
+    elif data.mode == "chow": graphicsFunc.chowMousePressed(event, data)
 
 def keyPressed(event, data):
     if event.keysym == "p":
@@ -44,15 +45,22 @@ def redrawAll(canvas, data):
     if data.mode == "start":
         canvas.create_text(data.width / 2, data.height / 2, text="press p to play")
     elif data.mode == "play": playRedrawAll(canvas, data)
+    elif data.mode == "pong": 
+        playRedrawAll(canvas, data)
+        graphicsFunc.pongRedrawAll(canvas, data)
+    elif data.mode == "chow":
+        playRedrawAll(canvas, data)
+        graphicsFunc.chowRedrawAll(canvas, data)
 
 
 #---------------------- Play Mode -------------------------- #
 
+
 def playMousePressed(event, data):
     # highlights tile if pressed
-    graphicsFunc.pressTile(event, data)
+    graphicsFunc.tilePressed(event, data)
     # discards highlighted tile, changes turn, draws
-    graphicsFunc.discardHighl(event, data)
+    graphicsFunc.discardPressed(event, data)
      
 
 def playKeyPressed(event,data):
@@ -69,13 +77,15 @@ def playRedrawAll(canvas, data):
     # draw text indicating whose turn it is
     canvas.create_text(data.width / 2, 2 * data.height / 3, \
         text="Turn: " + data.turnOrder[data.turnInd].name, font = "Arial 20")
-    # draw discard button
+    # discard button
     graphicsFunc.discardButton(canvas, data)
     # draw tiles
     for hand in data.turnOrder:
         hand.drawTiles(canvas, data)
+        hand.drawMelds(canvas, data)
     # draw discard pile
     graphicsFunc.drawDiscard(canvas, data)
+
 
 
 ###########################################
