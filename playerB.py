@@ -3,7 +3,7 @@ import random
 import graphicsFunc
 import logic
 import copy
-random.seed(10)
+random.seed(11)
 class PlayerB(player.Player):
 
 	def __init__(self):
@@ -14,6 +14,7 @@ class PlayerB(player.Player):
 		data.altMultB = 1
 		for i in range(1,14):
 			self.addTile(data)
+		print(self.tiles, len(self.tiles))
 		self.reorganizeTiles(data)
 
 	# returns the sequential hand order to check for melds after the current player
@@ -56,6 +57,7 @@ class PlayerB(player.Player):
 			pX = piece[0]
 			pY = piece[1]
 			self.threeDTile(canvas, pX, pY)
+			# always show image
 			canvas.create_image(pX, pY, image=piece[2][0])
 
 	# creates 3d appearing mahjong piece with red at back

@@ -3,7 +3,7 @@ import random
 import graphicsFunc
 import logic
 import copy
-random.seed(10)
+random.seed(11)
 class PlayerR(player.Player):
 
 	def __init__(self):
@@ -55,7 +55,12 @@ class PlayerR(player.Player):
 			pX = piece[0]
 			pY = piece[1]
 			self.threeDTile(canvas, pX, pY)
-			canvas.create_image(pX, pY, image=piece[2][0])
+			# in no cpu version, do not show tiles
+			if data.cpus != []:
+				img = data.backHPng
+			else:
+				img = piece[2][0]
+			canvas.create_image(pX, pY, image=img)
 
 	# creates 3d appearing mahjong piece horizontally
 	def threeDTile(self, canvas, pX, pY):

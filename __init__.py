@@ -9,7 +9,8 @@ import playerT
 import playerB
 import playerR
 import graphicsFunc
-random.seed(10)
+import cpu
+random.seed(11)
 # ---------------------- Control Center ------------------------- #
 
 def init(data):
@@ -32,6 +33,8 @@ def init(data):
     data.turnOrder[data.turnInd].addTile(data) # first player draws
     data.winningHand = data.turnOrder[data.turnInd].tiles + data.turnOrder[data.turnInd].melds
     data.winner = data.turnOrder[data.turnInd].name
+    data.cpu = False
+    data.cpus = []
     # L = ['6bamboo.png', '7bamboo.png', '9dot.png', '6bamboo.png', '8character.png','7character.png', \
     # '9dot.png', '6character.png','6bamboo.png', '8bamboo.png']
     # print(logic.winningTiles(data.imageNames, L))
@@ -43,7 +46,7 @@ def mousePressed(event, data):
     elif data.mode == "chow": graphicsFunc.chowMousePressed(event, data)
 
 def keyPressed(event, data):
-    if event.keysym == "p":
+    if event.keysym == "p": # play with full control, all tiles revealed 
         data.mode = "play"
     if event.keysym == "q": # for testing
         data.mode = "win"
@@ -54,15 +57,36 @@ def keyPressed(event, data):
             print(hand.name)
             print(hand.tiles, "tiles")
             print(hand.melds, "melds")
-    if data.mode == "play": playKeyPressed(event, data)
+    if data.mode == "start":
+        if event.keysym == "c":
+            data.cpu = True
+            print("Currently in Cpu mode")
+            data.mode = "play"
+    if data.mode == "play": 
+        playKeyPressed(event, data)
+        if data.cpu == True:
+            data.cpus.append(type(data.R))
+            data.cpus.append(type(data.L))
+            data.cpus.append(type(data.T))
 
 def timerFired(data):
     if data.mode == "play": playTimerFired(data)
 
 def redrawAll(canvas, data):
     if data.mode == "start":
-        canvas.create_text(data.width / 2, data.height / 2, text="press p to play")
-    elif data.mode == "play": playRedrawAll(canvas, data)
+        canvas.create_rectangle(0, 0, data.width, data.height, fill="cyan")
+        canvas.create_text(data.width / 2, data.height / 2 - 100, \
+            text="Temporary Start Screen :~)", font = "Arial 40")
+        canvas.create_text(data.width / 2, data.height / 2 + 20, \
+            text="Press 'c' to play against three cpu", font = "Arial 25")
+        canvas.create_text(data.width / 2, data.height / 2 + 100, font = "Arial 25",\
+            text= "Press 'p' to play with revealed hands +")
+        canvas.create_text(data.width / 2, data.height / 2 + 130, font = "Arial 25", \
+            text= "full control over all players (testing/debugging)")
+        canvas.create_text(data.width / 2, data.height / 2 + 180, font = "Arial 25", \
+            text= "Press 'r' at any point to return to the start screen")
+    elif data.mode == "play": 
+        playRedrawAll(canvas, data)
     elif data.mode == "pong": 
         playRedrawAll(canvas, data)
         graphicsFunc.pongRedrawAll(canvas, data)
@@ -78,12 +102,22 @@ def redrawAll(canvas, data):
 
 
 def playMousePressed(event, data):
+    cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
+    if cpuTurn:
+        # have cpu choose a tile
+        chosenTile = random.choice(data.turnOrder[data.turnInd].tiles)
+        event.x = chosenTile[0]
+        event.y = chosenTile[1]
     # highlights tile if pressed
     graphicsFunc.tilePressed(event, data)
+    if cpuTurn:
+        # make event.x and event.y "press" the discard button
+        event.x = data.width / 2
+        event.y = 2 * data.height / 3 + 100
     # discards highlighted tile, changes turn, draws
     graphicsFunc.discardPressed(event, data)
-
-     
+    if len(data.drawPile) == 0:
+        print("game over no one wins") # temp
 
 def playKeyPressed(event,data):
     pass
@@ -100,6 +134,9 @@ def playRedrawAll(canvas, data):
     # draw text indicating whose turn it is
     canvas.create_text(data.width / 2, 2 * data.height / 3 + 40, \
         text="Current Turn: " + data.turnOrder[data.turnInd].name, font = "Arial 20")
+    if data.cpu == True:
+        canvas.create_text(data.width / 2, 2 * data.height / 3 + 60, \
+            text="Click anywhere for the computer to make a move.", font = "Arial 20")
     # discard button
     graphicsFunc.discardButton(canvas, data)
     # draw tiles

@@ -51,45 +51,25 @@ def initialHands(data):
 
 def tilePressed(event, data):
     i = 0
-    for piece in data.turnOrder[data.turnInd].tiles:
-        x1 = piece[0] - 15
-        y1 = piece[1] - 20
-        x2 = piece[0] + 15
-        y2 = piece[1] + 20
+    for tile in data.turnOrder[data.turnInd].tiles:
+        x1 = tile[0] - 15
+        y1 = tile[1] - 20
+        x2 = tile[0] + 15
+        y2 = tile[1] + 20
         if x1 <= event.x <= x2 and y1 <= event.y <= y2:
             curPlayer = data.turnOrder[data.turnInd]
-            # unhighlight the previous highlighted piece
+            # unhighlight the previous highlighted tile
             if curPlayer.highlighted != None:
                 curPlayer.tiles[curPlayer.highlighted][1] += 20
-            # highlight currently clicked piece
+            # highlight currently clicked tile
             curPlayer.tiles[i][1] -= 20
             curPlayer.highlighted = i
         i += 1
-    """
-    meld = False
-    if logic.isPong(data.highlighted) or logic.isChow(data.highlighted):
-        meld = True
-        for i in range(3):
-            piecesToRemove.append(data.highlightedPieces[i])
-            namesToRemove.append(data.highlighted[i])
-    if logic.isKong(data.highlighted):
-        meld = True
-        for i in range(4):
-            piecesToRemove.append(data.highlightedPieces[i])
-            namesToRemove.append(data.highlighted[i])
-    if meld:
-        print(namesToRemove)
-        for i in range(len(namesToRemove)):
-            data.highlighted.remove(namesToRemove[i])
-        for i in range(len(piecesToRemove)):
-            removeInd = hand.index(piecesToRemove[i])
-            hand.pop(removeInd)
-    piecesToRemove = []
-    namesToRemove = []
-    """
+
 # discards highlighted tile if you click on the discard button, changes turn, next draws
 def discardPressed(event, data):
-    if event.x > data.width - 140 and event.y > data.height - 30:
+    if data.width / 2 - 120 <= event.x < data.width / 2 + 120  and \
+    2 * data.height / 3 + 80 <= event.y <=  2 * data.height / 3 + 130:
         data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
         data.turnInd += 1
@@ -98,9 +78,10 @@ def discardPressed(event, data):
         data.turnOrder[data.turnInd].addTile(data)
         # don't be destructive
         tileNames = copy.copy(data.turnOrder[data.turnInd].tileNames)
+        # check if you won after adding a tile
         checkWin = logic.winningCombo(tileNames)
         if checkWin != None:
-            print(checkWin, "WOSADFJASLDFLKASDFJALKJWONNNN")
+            print(checkWin, "Won from draw!")
             data.mode = "win"
         data.turnOrder[data.turnInd].reorganizeTiles(data)
 
@@ -129,9 +110,10 @@ def threeDTile(canvas, pX, pY):
 
 # makes a discard button
 def discardButton(canvas, data):
-    canvas.create_rectangle(data.width - 140, data.height - 30, data.width, data.height, fill = "pink")
-    canvas.create_text(data.width - 5, data.height - 5, text="Discard chosen tile", font = "Arial 15", \
-        fill = "Gray", anchor = "se")
+    canvas.create_rectangle(data.width / 2 - 120, 2 * data.height / 3 + 80, \
+        data.width / 2 + 120, 2 * data.height / 3 + 130, fill = "pink")
+    canvas.create_text(data.width / 2, 2 * data.height / 3 + 105, text="Discard chosen tile", font = "Arial 25", \
+        fill = "Gray")
 
 # draw pong
 def pongRedrawAll(canvas, data):
@@ -158,6 +140,12 @@ def pongRedrawAll(canvas, data):
 # key pressed pong
 def pongMousePressed(event, data):
     # press Pong!
+    cpuTurn = type(data.pongOptHand) in data.cpus # if it's a cpu's turn
+    if cpuTurn:
+        # cpu should press Pong! 
+        print("pong cpu option")
+        event.x = data.width / 3 + 50
+        event.y = 7 * data.height / 10
     if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         # add discarded tile to meld
@@ -214,11 +202,16 @@ def chowRedrawAll(canvas, data):
 
 # key pressed chow
 def chowMousePressed(event, data):
+    cpuTurn = type(data.chowOptHand) in data.cpus # if it's a cpu's turn
+    if cpuTurn:
+        print("chow cpu option")
+        # cpu should press Chow! 
+        event.x = data.width / 3 + 50
+        event.y = 7 * data.height / 10
     # press Chow!
     if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         # add discarded tile to meld
-        print(data.firstChowTile[2][1], data.secondChowTile[2][1])
         data.chowOptHand.melds.append([None, None, data.chowOptTile[2], False])
         # add first chow tile in hand to meld and remove from hand
         for tile in data.chowOptHand.tiles:
