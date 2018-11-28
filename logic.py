@@ -106,42 +106,68 @@ def winningCombo(tileLst, winCombo = None):
 	else:
 		for threeSet in threePowerset(tileLst):
 			if isPong(threeSet) or isChow(threeSet):
-				oldWinCombo = copy.copy(winCombo)
-				winCombo += threeSet
-				oldTileLst = copy.copy(tileLst)
+				newWinCombo = winCombo + threeSet
+				newTileLst = tileLst[:]
 				for tile in threeSet:
-					tileLst.remove(tile)
-				tmp = winningCombo(tileLst, winCombo)
+					newTileLst.remove(tile)
+				tmp = winningCombo(newTileLst, newWinCombo)
 				if tmp != None:
 					return tmp
-				tileLst = oldTileLst
-				winCombo = oldWinCombo
 	return None
 
 # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
-def fromWinningCombo(tileLst, curCombo = None):
-	if curCombo == None:
-		curCombo = []
-	# final combo should always be a winning pair, not a meld
-	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
-		return winCombo + tileLst
-	else:
-		for threeSet in threePowerset(tileLst):
-			if isPong(threeSet) or isChow(threeSet):
-				oldCombo = copy.copy(curCombo)
-				curCombo += threeSet
-				oldTileLst = copy.copy(tileLst)
-				for tile in threeSet:
-					tileLst.remove(tile)
-				tmp = winningCombo(tileLst, winCombo)
-				if tmp != None:
-					return tmp
-				tileLst = oldTileLst
-				curCombo = oldCombo
-	return None
+def winningTiles(imageNames, tileLst):
+	winningTiles = []
+	for tileName in imageNames:
+		newTileLst = tileLst + [tileName]
+		if winningCombo(newTileLst):
+			winningTiles.append(tileName)
+	return winningTiles
 
-L = ['7dot.png', '9bamboo.png', '4bamboo.png', '9dot.png', '5dot.png', '8character.png', 'dred.png', '3dot.png', '7character.png', '5character.png', '6character.png', '8dot.png', '4dot.png', '4bamboo.png']
+# # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
+# def winningTiles(tileLst, winCombo = None, winTiles = None):
+# 	if winTiles == None:
+# 		winTiles = []
+# 		winCombo = []
+# 	# in this condition, a winning hand would be possible, which should already be addressed 
+# 	# by winningCombo(tileLst, winCombo = None)
+# 	assert(not (len(tileLst) == 2 and tileLst[0] == tileLst[1]))
+# 	# need a tile matching last tile to make a pair
+# 	if len(tileLst) == 1:
+# 		return tileLst[0] + winTiles
+# 	# because 5 tiles could win 
+# 	if len(tileLst) == 4:
+# 		tryLst = []
+# 		for tile in tileLst:
+# 			tryLst.append(tile)
+# 			if tile[0] in "123456789":
+# 				plusOne = (int(tile[0]) + 1) + tile[1:]
+# 				minusOne = (int(tile[0]) - 1) + tile[1:]
+# 				tryLst.append(plusOne)
+# 				tryLst.append(minusOne)
+# 		for tile in tryLst:
+# 			tryTileLst = tileLst + tile
+# 			if winningCombo(tryTileLst):
+# 				return tile + winTiles
+# 	else:
+# 		for threeSet in threePowerset(tileLst):
+# 			if isPong(threeSet) or isChow(threeSet):
+# 				newWinCombo = winCombo + threeSet
+# 				newTileLst = tileLst + threeSet
+# 				for tile in threeSet:
+# 					newTileLst.remove(tile)
+# 				tmp = winningCombo(newTileLst, newWinCombo, winTiles)
+# 				if tmp != None:
+# 					return tmp
+# 	return None
+
+
+L = ['4dot.png', '9bamboo.png', '7bamboo.png', '9dot.png', '4dot.png', '8character.png','7character.png', \
+'9dot.png', '6character.png','4dot.png', '8bamboo.png']
 #print(winningCombo(L))
+R = ['8character.png','9bamboo.png', '7bamboo.png', '8bamboo.png']
+#print(winningTiles(R))
+
 #print(threePowerset(["1bamboo", "4bamboo", "2bamboo", "1dot", "7dot","7dot", "7dot", "3bamboo", "7dot"]))
 testPongChow = ["3bamboo", "1bamboo", "2bamboo"]
 assert(isPong(testPongChow) == False)

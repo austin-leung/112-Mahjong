@@ -15,18 +15,26 @@ random.seed(10)
 def init(data):
     data.mode = "start"
     data.images = []
+    data.imageNames = []
     data.drawPile = [] 
-    data.highlighted = []
-    data.B = playerB.PlayerB([], "Bottom")
-    data.R = playerR.PlayerR([], "Right")
-    data.T = playerT.PlayerT([], "Top")
-    data.L = playerL.PlayerL([], "Left")
+    data.B = playerB.PlayerB()
+    data.R = playerR.PlayerR()
+    data.T = playerT.PlayerT()
+    data.L = playerL.PlayerL()
     data.turnOrder = [data.B, data.R, data.T, data.L]
     data.turnInd = random.randint(0, 3)
     graphicsFunc.loadImages(data)
     graphicsFunc.loadSeaFlow(data)
     graphicsFunc.initialHands(data)
     graphicsFunc.loadBack(data)
+    for image in data.images:
+        data.imageNames.append(image[1])
+    data.turnOrder[data.turnInd].addTile(data) # first player draws
+    data.winningHand = data.turnOrder[data.turnInd].tiles + data.turnOrder[data.turnInd].melds
+    data.winner = data.turnOrder[data.turnInd].name
+    # L = ['6bamboo.png', '7bamboo.png', '9dot.png', '6bamboo.png', '8character.png','7character.png', \
+    # '9dot.png', '6character.png','6bamboo.png', '8bamboo.png']
+    # print(logic.winningTiles(data.imageNames, L))
 
 
 def mousePressed(event, data):
@@ -37,6 +45,15 @@ def mousePressed(event, data):
 def keyPressed(event, data):
     if event.keysym == "p":
         data.mode = "play"
+    if event.keysym == "q": # for testing
+        data.mode = "win"
+    if event.keysym == "r": # for resetting
+        init(data)
+    if event.keysym == "1": # for testing
+        for hand in data.turnOrder:
+            print(hand.name)
+            print(hand.tiles, "tiles")
+            print(hand.melds, "melds")
     if data.mode == "play": playKeyPressed(event, data)
 
 def timerFired(data):
@@ -78,10 +95,11 @@ def playRedrawAll(canvas, data):
     # draw background
     canvas.create_rectangle(0, 0, data.width, data.height, fill="green") 
     # draw remaining draw tile count
-    canvas.create_text(data.width / 2, data.height / 2, text=len(data.drawPile), font = "Arial 20")
+    canvas.create_text(data.width / 2, 2 * data.height / 3, text= "Tiles Left: " + \
+        str(len(data.drawPile)), font = "Arial 20")
     # draw text indicating whose turn it is
-    canvas.create_text(data.width / 2, 2 * data.height / 3, \
-        text="Turn: " + data.turnOrder[data.turnInd].name, font = "Arial 20")
+    canvas.create_text(data.width / 2, 2 * data.height / 3 + 40, \
+        text="Current Turn: " + data.turnOrder[data.turnInd].name, font = "Arial 20")
     # discard button
     graphicsFunc.discardButton(canvas, data)
     # draw tiles

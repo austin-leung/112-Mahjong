@@ -1,8 +1,13 @@
 import player
 import random
 import graphicsFunc
+import logic
+import copy
 random.seed(10)
 class PlayerT(player.Player):
+
+	def __init__(self):
+		super().__init__("Top")
 
 	def initialHand(self, data):
 		data.widthTop = data.width / 2
@@ -10,8 +15,12 @@ class PlayerT(player.Player):
 		for i in range(1,14):
 			self.addTile(data)
 		self.reorganizeTiles(data)
+		
+	# returns the sequential hand order to check for melds after the current player
+	def handOrder(self, data):
+		return [data.L, data.B, data.R]
 
-
+	# recenters tiles based on the number of tiles left in the hand
 	def reorganizeTiles(self, data):
 		newTiles = []
 		data.widthTop = data.width / 2
@@ -39,23 +48,6 @@ class PlayerT(player.Player):
 		i = len(self.tiles)
 		data.widthTop += 40 * data.altMultT * i
 		data.altMultT *= -1
-
-	# discards the chosen tile
-	def discardTile(self, data):
-		removed = self.tiles.pop(self.highlightedPieces[0])
-		self.discarded.append(removed)
-		PlayerT.discPile.append(removed)
-		self.tileNames.remove(removed[2][1])
-		self.highlightedPieces = []
-		for hand in [data.L, data.B, data.R]:
-			if hand.canPong(data, removed):
-				data.pongOptHand = hand
-				data.pongOptTile = removed
-				data.mode = "pong"
-			if hand.canChow(data, removed):
-				data.chowOptHand = hand
-				data.chowOptTile = removed
-				data.mode = "chow"
 
 	# creates 3d appearing mahjong piece with red background in front
 	def drawTiles(self, canvas, data):

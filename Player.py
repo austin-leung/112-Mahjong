@@ -1,16 +1,17 @@
 # Player.py contains the object Player, with all the actions a player can do and their tiles
 
 import random
+import logic
 class Player(object):
 
 	discPile = []
 
-	def __init__(self, tiles, name):
+	def __init__(self, name):
 		self.name = name
 		self.tiles = []
 		self.melds = []
 		self.discarded = []
-		self.highlightedPieces = []
+		self.highlighted = None
 		self.tileNames = []
 
 	# returns True if you can pong the tile that is thrown out
@@ -31,7 +32,7 @@ class Player(object):
 	# returns True if you can chow the tile that is thrown out
 	def canChow(self, data, discTile):
 		discName = discTile[2][1]
-		if discName[0] not in "0123456789":
+		if discName[0] not in "123456789":
 			return False
 		minusTwo = str(int(discName[0]) - 2) +  discName[1:]
 		minusOne = str(int(discName[0]) - 1) +  discName[1:]
@@ -72,19 +73,35 @@ class Player(object):
 			return True
 		return False
 
-	# takes three tiles from hand and makes it a meld
-	def makeMeld(self, tileInd0, tileInd1, tileInd2):
-		# loop through the indexes in reversed order to not interfere with loop when popping
-		# idea from https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time/41097792
-		sortedInd = sorted([tileInd0, tileInd1, tileInd2], reverse = True)
-		poppedLst = []
-		for ind in sortedInd:
-			poppedLst.append(self.tiles.pop(ind))
-		for element in poppedLst:
-			self.melds.append(element)
-			self.tileNames.remove(element)
 
 
+	# discards the chosen tile, checking for other hands' potentially using it for melds in order
+	def discardTile(self, data, handOrder):
+		removed = self.tiles.pop(self.highlighted)
+		self.discarded.append(removed)
+		Player.discPile.append(removed)
+		self.tileNames.remove(removed[2][1])
+		self.highlighted = None
+		# check if anyone can win with the tile
+		for hand in handOrder:
+			if removed[2][1] in logic.winningTiles(data.imageNames, hand.tileNames):
+				hand.tiles.append(removed)
+				hand.tileNames.append(removed[2][1])
+				print("should win")
+				data.winner = hand.name
+				data.winningHand = hand.melds + hand.tiles
+				data.mode = "win"
+				return
+		# check if anyone can pong or chow the tile
+		for hand in handOrder:
+			if hand.canPong(data, removed):
+				data.pongOptHand = hand
+				data.pongOptTile = removed
+				data.mode = "pong"
+			if hand.canChow(data, removed):
+				data.chowOptHand = hand
+				data.chowOptTile = removed
+				data.mode = "chow"
 
 
 	

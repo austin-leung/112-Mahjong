@@ -1,8 +1,13 @@
 import player
 import random
 import graphicsFunc
+import logic
+import copy
 random.seed(10)
 class PlayerL(player.Player):
+
+	def __init__(self):
+		super().__init__("Left")
 
 	def initialHand(self, data):
 		data.altMultL = 1 # starts adding from center and then outwards
@@ -11,7 +16,11 @@ class PlayerL(player.Player):
 			self.addTile(data)
 		self.reorganizeTiles(data)
 
+	# returns the sequential hand order to check for melds after the current player
+	def handOrder(self, data):
+		return [data.B, data.R, data.T]
 
+	# recenters tiles based on the number of tiles left in the hand
 	def reorganizeTiles(self, data):
 		newTiles = []
 		data.heightLeft = data.height / 2 - 15
@@ -40,22 +49,6 @@ class PlayerL(player.Player):
 		data.heightLeft += 40 * data.altMultL * i # goes right then left then right...
 		data.altMultL *= -1
 
-	# discards the chosen tile
-	def discardTile(self, data):
-		removed = self.tiles.pop(self.highlightedPieces[0])
-		self.discarded.append(removed)
-		PlayerL.discPile.append(removed)
-		self.tileNames.remove(removed[2][1])
-		self.highlightedPieces = []
-		for hand in [data.B, data.R, data.T]:
-			if hand.canPong(data, removed):
-				data.pongOptHand = hand
-				data.pongOptTile = removed
-				data.mode = "pong"
-			if hand.canChow(data, removed):
-				data.chowOptHand = hand
-				data.chowOptTile = removed
-				data.mode = "chow"
 
 	# draws horizontal tile with hidden image
 	def drawTiles(self, canvas, data):

@@ -16,12 +16,12 @@ def loadSeaFlow(data):
     for i in range(1,5):
         actualFileS = "s" + str(i) + ".png"
         seaFile = os.getcwd() + "/miscImages/" + actualFileS
-        data.images.append((PhotoImage(file=seaFile), actualFileS))
+        #data.images.append((PhotoImage(file=seaFile), actualFileS))
         data.drawPile.append((PhotoImage(file=seaFile), actualFileS))
 
         actualFileF = "f" + str(i) + ".png"
         flowFile = os.getcwd() + "/miscImages/" + actualFileF
-        data.images.append((PhotoImage(file=seaFile), actualFileF))
+        #data.images.append((PhotoImage(file=flowFile), actualFileF))
         data.drawPile.append((PhotoImage(file=flowFile), actualFileF))
 
 # loads the main tiles other than seasons and flowers, making 4 of each
@@ -32,7 +32,7 @@ def loadImages(data):
             continue
         filepathName = path + filename
         # store in tuple, image, filename. filename is for ex. "2bamboo.png"
-        data.images.append((PhotoImage(file=filepathName), filename)) 
+        data.images.append((PhotoImage(file=filepathName), filename))
     data.drawPile = copy.copy(data.images * 4) # 4 of each tile
 
 # loads the red back.png and backH.png
@@ -57,21 +57,13 @@ def tilePressed(event, data):
         x2 = piece[0] + 15
         y2 = piece[1] + 20
         if x1 <= event.x <= x2 and y1 <= event.y <= y2:
-            piece[3] = not piece[3]
-            if piece[3] == True:
-                data.turnOrder[data.turnInd].highlightedPieces.append(i)
-                """
-                # add e.g. "1bamboo.png"
-                data.highlighted.append(piece[2][1])
-                data.highlightedPieces.append(piece)
-                """
-                piece[1] -= 20 # highlighted pieces are shifted up
-            elif piece[3] == False:
-                data.turnOrder[data.turnInd].highlightedPieces.remove(i)
-                """
-                data.highlighted.remove(piece[2][1])
-                """
-                piece[1] += 20 # shift down when unhighlighted
+            curPlayer = data.turnOrder[data.turnInd]
+            # unhighlight the previous highlighted piece
+            if curPlayer.highlighted != None:
+                curPlayer.tiles[curPlayer.highlighted][1] += 20
+            # highlight currently clicked piece
+            curPlayer.tiles[i][1] -= 20
+            curPlayer.highlighted = i
         i += 1
     """
     meld = False
@@ -97,11 +89,8 @@ def tilePressed(event, data):
     """
 # discards highlighted tile if you click on the discard button, changes turn, next draws
 def discardPressed(event, data):
-    # can only discard one piece
-    if len(data.turnOrder[data.turnInd].highlightedPieces) != 1:
-        return
-    elif event.x > data.width - 140 and event.y > data.height - 30:
-        data.turnOrder[data.turnInd].discardTile(data)
+    if event.x > data.width - 140 and event.y > data.height - 30:
+        data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
         data.turnInd += 1
         if data.turnInd >= 4:
@@ -177,12 +166,14 @@ def pongMousePressed(event, data):
         for tile in  data.pongOptHand.tiles:
             if tile[2][1] == data.firstPongTile[2][1]: # only compare by tile name
                 data.pongOptHand.tiles.remove(tile)
+                data.pongOptHand.tileNames.remove(tile[2][1])
                 break
         data.pongOptHand.melds.append([None, None, data.firstPongTile[2], False])
         # add second pong tile in hand to meld and remove from hand
         for tile in  data.pongOptHand.tiles:
             if tile[2][1] == data.secondPongTile[2][1]: # only compare by tile name
                 data.pongOptHand.tiles.remove(tile)
+                data.pongOptHand.tileNames.remove(tile[2][1])
                 break
         data.pongOptHand.melds.append([None, None, data.secondPongTile[2], False])
         data.mode = "play"
@@ -227,17 +218,20 @@ def chowMousePressed(event, data):
     if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         # add discarded tile to meld
+        print(data.firstChowTile[2][1], data.secondChowTile[2][1])
         data.chowOptHand.melds.append([None, None, data.chowOptTile[2], False])
         # add first chow tile in hand to meld and remove from hand
         for tile in data.chowOptHand.tiles:
             if tile[2][1] == data.firstChowTile[2][1]: # only compare by tile name
                 data.chowOptHand.tiles.remove(tile)
+                data.chowOptHand.tileNames.remove(tile[2][1])
                 break
         data.chowOptHand.melds.append([None, None, data.firstChowTile[2], False])
         # add second chow tile in hand to meld and remove from hand
         for tile in data.chowOptHand.tiles:
             if tile[2][1] == data.secondChowTile[2][1]: # only compare by tile name
                 data.chowOptHand.tiles.remove(tile)
+                data.chowOptHand.tileNames.remove(tile[2][1])
                 break
         data.chowOptHand.melds.append([None, None, data.secondChowTile[2], False]) 
         data.mode = "play"
@@ -255,4 +249,19 @@ def chowMousePressed(event, data):
 
 # victory message
 def winRedrawAll(canvas, data):
-    canvas.create_text(data.width / 2, data.height / 2, text="YOU WON BOI", font = "Arial 30")
+    canvas.create_rectangle(data.width / 2 - 200, data.height / 2 - 200, \
+        data.width / 2 + 200, data.height / 2 + 200, fill = "pink")
+    canvas.create_text(data.width / 2, data.height / 2 - 100, text= data.winner + " WON!!!", font = "Arial 30")
+    canvas.create_text(data.width / 2, data.height / 2 - 50, text= "The winning hand:", font = "Arial 30")
+    # display the winning hand
+    i = 0
+    j = 0
+    for piece in data.winningHand:
+        pX = data.width / 2 - 125 + 45 * i
+        pY = data.height / 2 + 50 + 55 * j
+        threeDTile(canvas, pX, pY)
+        canvas.create_image(pX, pY , image=piece[2][0])
+        i += 1
+        if i == 7:
+            j += 1
+            i = 0
