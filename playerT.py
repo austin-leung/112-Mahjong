@@ -1,7 +1,7 @@
 import player
 import random
 import graphicsFunc
-
+random.seed(10)
 class PlayerT(player.Player):
 
 	def initialHand(self, data):
@@ -34,8 +34,9 @@ class PlayerT(player.Player):
 			return
 		# add new tile at corresponding position
 		self.tiles.append([data.widthTop, 1.2 * data.height / 12, drawnTile, False])
+		self.tileNames.append(drawnTile[1])
 		# change position of next tile
-		i = len( self.tiles)
+		i = len(self.tiles)
 		data.widthTop += 40 * data.altMultT * i
 		data.altMultT *= -1
 
@@ -44,18 +45,17 @@ class PlayerT(player.Player):
 		removed = self.tiles.pop(self.highlightedPieces[0])
 		self.discarded.append(removed)
 		PlayerT.discPile.append(removed)
+		self.tileNames.remove(removed[2][1])
 		self.highlightedPieces = []
 		for hand in [data.L, data.B, data.R]:
 			if hand.canPong(data, removed):
 				data.pongOptHand = hand
 				data.pongOptTile = removed
 				data.mode = "pong"
-				return
 			if hand.canChow(data, removed):
 				data.chowOptHand = hand
 				data.chowOptTile = removed
 				data.mode = "chow"
-				return
 
 	# creates 3d appearing mahjong piece with red background in front
 	def drawTiles(self, canvas, data):

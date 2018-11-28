@@ -9,7 +9,7 @@ import playerT
 import playerB
 import playerR
 import graphicsFunc
-
+random.seed(10)
 # ---------------------- Control Center ------------------------- #
 
 def init(data):
@@ -22,11 +22,12 @@ def init(data):
     data.T = playerT.PlayerT([], "Top")
     data.L = playerL.PlayerL([], "Left")
     data.turnOrder = [data.B, data.R, data.T, data.L]
-    data.turnInd = 0
+    data.turnInd = random.randint(0, 3)
     graphicsFunc.loadImages(data)
     graphicsFunc.loadSeaFlow(data)
     graphicsFunc.initialHands(data)
     graphicsFunc.loadBack(data)
+
 
 def mousePressed(event, data):
     if data.mode == "play": playMousePressed(event, data)
@@ -51,6 +52,9 @@ def redrawAll(canvas, data):
     elif data.mode == "chow":
         playRedrawAll(canvas, data)
         graphicsFunc.chowRedrawAll(canvas, data)
+    elif data.mode == "win":
+        playRedrawAll(canvas, data)
+        graphicsFunc.winRedrawAll(canvas, data)
 
 
 #---------------------- Play Mode -------------------------- #
@@ -61,6 +65,7 @@ def playMousePressed(event, data):
     graphicsFunc.tilePressed(event, data)
     # discards highlighted tile, changes turn, draws
     graphicsFunc.discardPressed(event, data)
+
      
 
 def playKeyPressed(event,data):

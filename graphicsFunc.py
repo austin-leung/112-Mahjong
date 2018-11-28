@@ -9,6 +9,7 @@ import playerL
 import playerT
 import playerB
 import playerR
+import copy
 
 # loads the seasons and flowers
 def loadSeaFlow(data):
@@ -106,6 +107,12 @@ def discardPressed(event, data):
         if data.turnInd >= 4:
             data.turnInd = 0
         data.turnOrder[data.turnInd].addTile(data)
+        # don't be destructive
+        tileNames = copy.copy(data.turnOrder[data.turnInd].tileNames)
+        checkWin = logic.winningCombo(tileNames)
+        if checkWin != None:
+            print(checkWin, "WOSADFJASLDFLKASDFJALKJWONNNN")
+            data.mode = "win"
         data.turnOrder[data.turnInd].reorganizeTiles(data)
 
 # draws the discard pile in the center of the table
@@ -181,7 +188,12 @@ def pongMousePressed(event, data):
         data.mode = "play"
         data.pongOptHand.reorganizeTiles(data)
         player.Player.discPile.pop()
+        # send the added tile for the following player back to the draw pile
+        lastDrawnTile = data.turnOrder[data.turnInd].tiles.pop()
+        data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
+        data.drawPile.append(lastDrawnTile[2])
         data.turnInd = data.turnOrder.index(data.pongOptHand)
+        data.mode = "play"
     # press Skip
     elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
@@ -214,9 +226,6 @@ def chowMousePressed(event, data):
     # press Chow!
     if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
-        print(data.firstChowTile, "first")
-        print(data.secondChowTile, "second")
-        print(data.chowOptHand.tiles, "the hand tiles")
         # add discarded tile to meld
         data.chowOptHand.melds.append([None, None, data.chowOptTile[2], False])
         # add first chow tile in hand to meld and remove from hand
@@ -234,9 +243,16 @@ def chowMousePressed(event, data):
         data.mode = "play"
         data.chowOptHand.reorganizeTiles(data)
         player.Player.discPile.pop()
+        # send the added tile for the following player back to the draw pile
+        lastDrawnTile = data.turnOrder[data.turnInd].tiles.pop()
+        data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
+        data.drawPile.append(lastDrawnTile[2])
         data.turnInd = data.turnOrder.index(data.chowOptHand)
     # press Skip
     elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         data.mode = "play"
 
+# victory message
+def winRedrawAll(canvas, data):
+    canvas.create_text(data.width / 2, data.height / 2, text="YOU WON BOI", font = "Arial 30")

@@ -1,7 +1,7 @@
 import player
 import random
 import graphicsFunc
-
+random.seed(10)
 class PlayerR(player.Player):
 
 	def initialHand(self, data):
@@ -28,13 +28,13 @@ class PlayerR(player.Player):
 		randInd = random.randint(0, len(data.drawPile) - 1)
 		drawnTile = data.drawPile.pop(randInd)
 		# draw another tile for flowers and seasons
-		print(drawnTile)
 		if drawnTile[1][0] == "s" or drawnTile[1][0] == "f":
 			self.melds.append([None, None, drawnTile, False])
 			self.addTile(data)
 			return
 		# add new tile at corresponding position
 		self.tiles.append([8.5 * data.width / 10, data.heightRight, drawnTile, False])
+		self.tileNames.append(drawnTile[1])
 		# change position of next tile
 		i = len( self.tiles)
 		data.heightRight += 40 * data.altMultR * i
@@ -45,18 +45,17 @@ class PlayerR(player.Player):
 		removed = self.tiles.pop(self.highlightedPieces[0])
 		self.discarded.append(removed)
 		PlayerR.discPile.append(removed)
+		self.tileNames.remove(removed[2][1])
 		self.highlightedPieces = []
 		for hand in [data.B, data.T, data.L]:
 			if hand.canPong(data, removed):
 				data.pongOptHand = hand
 				data.pongOptTile = removed
 				data.mode = "pong"
-				return
 			if hand.canChow(data, removed):
 				data.chowOptHand = hand
 				data.chowOptTile = removed
 				data.mode = "chow"
-				return
 
 	# draws horizontal tile with hidden image
 	def drawTiles(self, canvas, data):

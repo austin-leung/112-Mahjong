@@ -1,7 +1,7 @@
 import player
 import random
 import graphicsFunc
-
+random.seed(10)
 class PlayerL(player.Player):
 
 	def initialHand(self, data):
@@ -34,6 +34,7 @@ class PlayerL(player.Player):
 			return
 		# add new tile at corresponding position
 		self.tiles.append([1.5 * data.width / 10, data.heightLeft, drawnTile, False])
+		self.tileNames.append(drawnTile[1])
 		# change position of next tile
 		i = len(self.tiles)
 		data.heightLeft += 40 * data.altMultL * i # goes right then left then right...
@@ -44,18 +45,17 @@ class PlayerL(player.Player):
 		removed = self.tiles.pop(self.highlightedPieces[0])
 		self.discarded.append(removed)
 		PlayerL.discPile.append(removed)
+		self.tileNames.remove(removed[2][1])
 		self.highlightedPieces = []
 		for hand in [data.B, data.R, data.T]:
 			if hand.canPong(data, removed):
 				data.pongOptHand = hand
 				data.pongOptTile = removed
 				data.mode = "pong"
-				return
 			if hand.canChow(data, removed):
 				data.chowOptHand = hand
 				data.chowOptTile = removed
 				data.mode = "chow"
-				return
 
 	# draws horizontal tile with hidden image
 	def drawTiles(self, canvas, data):

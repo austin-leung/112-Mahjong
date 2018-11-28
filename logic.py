@@ -41,10 +41,10 @@ def isChow(lst):
 	return True
 
 # returns a list of melds that are possible from a list of tiles 
-def checkMelds(tileLst):
+def possibleMelds(tileLst):
 	solutionLst = []
-	trios = threePowerset(tileLst)[0]
-	quads = threePowerset(tileLst)[1]
+	trios = threeFourPowerset(tileLst)[0]
+	quads = threeFourPowerset(tileLst)[1]
 	for trio in trios:
 		if isChow(trio):
 			trio.append("Chow")
@@ -54,9 +54,13 @@ def checkMelds(tileLst):
 			solutionLst.append(trio)
 	for quad in quads:
 		if isKong(quad):
-			trio.append("Kong")
+			quad.append("Kong")
 			solutionLst.append(quad)
-	return solutionLst
+	# get rid of duplicates
+	solutionSet = set()
+	for item in solutionLst:
+		solutionSet.add(tuple(item))
+	return solutionSet
 
 # powerset from course notes
 def powerset(tileLst):
@@ -71,7 +75,7 @@ def powerset(tileLst):
         return allSubsets
 
 # adapted powerset returning sets of length 3 and 4
-def threePowerset(tileLst):
+def threeFourPowerset(tileLst):
  	psets = powerset(tileLst)
  	threeLst = []
  	fourLst = []
@@ -81,7 +85,64 @@ def threePowerset(tileLst):
  		if len(lst) == 4:
  			fourLst.append(lst)
  	return [threeLst, fourLst]
-"""
+
+ # adapted powerset returning sets of length 3
+def threePowerset(tileLst):
+ 	psets = powerset(tileLst)
+ 	threeLst = []
+ 	for lst in psets:
+ 		if len(lst) == 3:
+ 			threeLst.append(lst)
+ 	return threeLst
+
+import copy
+# recursive backtracking to find a winning combo from tiles, returns None if no win
+def winningCombo(tileLst, winCombo = None):
+	if winCombo == None:
+		winCombo = []
+	# final combo should always be a winning pair, not a meld
+	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
+		return winCombo + tileLst
+	else:
+		for threeSet in threePowerset(tileLst):
+			if isPong(threeSet) or isChow(threeSet):
+				oldWinCombo = copy.copy(winCombo)
+				winCombo += threeSet
+				oldTileLst = copy.copy(tileLst)
+				for tile in threeSet:
+					tileLst.remove(tile)
+				tmp = winningCombo(tileLst, winCombo)
+				if tmp != None:
+					return tmp
+				tileLst = oldTileLst
+				winCombo = oldWinCombo
+	return None
+
+# recursive backtracking to find the all singular tiles that could make the tileLst hand winning
+def fromWinningCombo(tileLst, curCombo = None):
+	if curCombo == None:
+		curCombo = []
+	# final combo should always be a winning pair, not a meld
+	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
+		return winCombo + tileLst
+	else:
+		for threeSet in threePowerset(tileLst):
+			if isPong(threeSet) or isChow(threeSet):
+				oldCombo = copy.copy(curCombo)
+				curCombo += threeSet
+				oldTileLst = copy.copy(tileLst)
+				for tile in threeSet:
+					tileLst.remove(tile)
+				tmp = winningCombo(tileLst, winCombo)
+				if tmp != None:
+					return tmp
+				tileLst = oldTileLst
+				curCombo = oldCombo
+	return None
+
+L = ['7dot.png', '9bamboo.png', '4bamboo.png', '9dot.png', '5dot.png', '8character.png', 'dred.png', '3dot.png', '7character.png', '5character.png', '6character.png', '8dot.png', '4dot.png', '4bamboo.png']
+#print(winningCombo(L))
+#print(threePowerset(["1bamboo", "4bamboo", "2bamboo", "1dot", "7dot","7dot", "7dot", "3bamboo", "7dot"]))
 testPongChow = ["3bamboo", "1bamboo", "2bamboo"]
 assert(isPong(testPongChow) == False)
 assert(isChow(testPongChow) == True)
@@ -94,6 +155,5 @@ testKong2 = ["3dot", "3dot", "3dot", "5dot"]
 assert(isKong(testKong2) == False)
 
 testMelds = ["1bamboo", "4bamboo", "2bamboo", "1dot", "7dot","7dot", "7dot", "3bamboo", "7dot"]
-print(checkMelds(testMelds))
-"""
+#print(possibleMelds(testMelds))
 

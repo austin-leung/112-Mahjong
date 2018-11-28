@@ -11,6 +11,7 @@ class Player(object):
 		self.melds = []
 		self.discarded = []
 		self.highlightedPieces = []
+		self.tileNames = []
 
 	# returns True if you can pong the tile that is thrown out
 	def canPong(self, data, discTile):
@@ -73,7 +74,7 @@ class Player(object):
 
 	# takes three tiles from hand and makes it a meld
 	def makeMeld(self, tileInd0, tileInd1, tileInd2):
-		# loop through the indexes in reversed order to not interfere with loopwhen popping
+		# loop through the indexes in reversed order to not interfere with loop when popping
 		# idea from https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time/41097792
 		sortedInd = sorted([tileInd0, tileInd1, tileInd2], reverse = True)
 		poppedLst = []
@@ -81,6 +82,7 @@ class Player(object):
 			poppedLst.append(self.tiles.pop(ind))
 		for element in poppedLst:
 			self.melds.append(element)
+			self.tileNames.remove(element)
 
 
 
