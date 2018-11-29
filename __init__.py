@@ -12,6 +12,7 @@ import graphicsFunc
 import cpu
 random.seed(11)
 # ---------------------- Control Center ------------------------- #
+# Mode structure from course notes
 
 def init(data):
     data.mode = "start"
@@ -85,6 +86,8 @@ def redrawAll(canvas, data):
             text= "full control over all players (testing/debugging)")
         canvas.create_text(data.width / 2, data.height / 2 + 180, font = "Arial 25", \
             text= "Press 'r' at any point to return to the start screen")
+        canvas.create_text(data.width / 2, data.height / 2 + 230, font = "Arial 25", \
+            text= "Press 'q' to go to the winning hand screen (testing)")
     elif data.mode == "play": 
         playRedrawAll(canvas, data)
     elif data.mode == "pong": 
@@ -104,8 +107,17 @@ def redrawAll(canvas, data):
 def playMousePressed(event, data):
     cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
     if cpuTurn:
-        # have cpu choose a tile
-        chosenTile = random.choice(data.turnOrder[data.turnInd].tiles)
+        # have cpu choose a tile among non-melded tiles
+        cpuTiles = copy.copy(data.turnOrder[data.turnInd].tileNames)
+        meldTiles = logic.longestCombo(cpuTiles)
+        for tile in meldTiles:
+            cpuTiles.remove(tile)
+        # cpuTiles should only have tiles not already in a meld left
+        chosenTileName = random.choice(cpuTiles)
+        chosenTile = random.choice(data.turnOrder[data.turnInd].tiles) # just in case
+        for tile in data.turnOrder[data.turnInd].tiles:
+            if chosenTileName == tile[2][1]:
+                chosenTile = tile
         event.x = chosenTile[0]
         event.y = chosenTile[1]
     # highlights tile if pressed
@@ -145,7 +157,6 @@ def playRedrawAll(canvas, data):
         hand.drawMelds(canvas, data)
     # draw discard pile
     graphicsFunc.drawDiscard(canvas, data)
-
 
 
 ###########################################

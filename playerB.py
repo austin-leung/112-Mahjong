@@ -14,7 +14,6 @@ class PlayerB(player.Player):
 		data.altMultB = 1
 		for i in range(1,14):
 			self.addTile(data)
-		print(self.tiles, len(self.tiles))
 		self.reorganizeTiles(data)
 
 	# returns the sequential hand order to check for melds after the current player

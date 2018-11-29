@@ -115,6 +115,30 @@ def winningCombo(tileLst, winCombo = None):
 					return tmp
 	return None
 
+
+# recursive backtracking to find the longest possible combo from tileLst
+# may return a winning combo if possible
+def longestCombo(tileLst, winCombo = None, curLongCombo = None):
+	if winCombo == None:
+		winCombo = []
+		curLongCombo = []
+	# final combo should always be a winning pair, not a meld
+	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
+		return curLongCombo
+	else:
+		for threeSet in threePowerset(tileLst):
+			if isPong(threeSet) or isChow(threeSet):
+				newWinCombo = winCombo + threeSet
+				if len(newWinCombo) > len(curLongCombo):
+					curLongCombo = newWinCombo[:]
+				newTileLst = tileLst[:]
+				for tile in threeSet:
+					newTileLst.remove(tile)
+				tmp = longestCombo(newTileLst, newWinCombo, curLongCombo)
+				if len(tmp) > len(curLongCombo):
+					curLongCombo = tmp
+	return curLongCombo
+
 # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
 def winningTiles(imageNames, tileLst):
 	winningTiles = []
@@ -161,10 +185,13 @@ def winningTiles(imageNames, tileLst):
 # 					return tmp
 # 	return None
 
-
-L = ['4dot.png', '9bamboo.png', '7bamboo.png', '9dot.png', '4dot.png', '8character.png','7character.png', \
-'9dot.png', '6character.png','4dot.png', '8bamboo.png']
-#print(winningCombo(L))
+# testing / debugging
+L = ['4dot.png', '9bamboo.png', '7bamboo.png', '4dot.png','8character.png','7character.png', \
+'9dot.png', '6character.png','8bamboo.png']
+#print(longestCombo(L))
+for item in longestCombo(L):
+	L.remove(item)
+#print(L)
 R = ['8character.png','9bamboo.png', '7bamboo.png', '8bamboo.png']
 #print(winningTiles(R))
 
