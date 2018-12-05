@@ -19,6 +19,7 @@ def init(data):
     data.images = []
     data.imageNames = []
     data.drawPile = [] 
+    data.discPile = []
     data.B = playerB.PlayerB()
     data.R = playerR.PlayerR()
     data.T = playerT.PlayerT()
@@ -28,7 +29,7 @@ def init(data):
     graphicsFunc.loadImages(data)
     graphicsFunc.loadSeaFlow(data)
     graphicsFunc.initialHands(data)
-    graphicsFunc.loadBack(data)
+    graphicsFunc.loadMisc(data)
     for image in data.images:
         data.imageNames.append(image[1])
     data.turnOrder[data.turnInd].addTile(data) # first player draws
@@ -36,15 +37,32 @@ def init(data):
     data.winner = data.turnOrder[data.turnInd].name
     data.cpu = False
     data.cpus = []
+    data.numPlayers = 1
+    data.paused = False
     # L = ['6bamboo.png', '7bamboo.png', '9dot.png', '6bamboo.png', '8character.png','7character.png', \
     # '9dot.png', '6character.png','6bamboo.png', '8bamboo.png']
     # print(logic.winningTiles(data.imageNames, L))
 
 
 def mousePressed(event, data):
-    if data.mode == "play": playMousePressed(event, data)
+    if data.mode == "start":
+        # you clicked on the start
+        if data.width / 2 - 50 <= event.x <= data.width / 2 + 250 and\
+        290 <= event.y <= 410:
+            graphicsFunc.setPlayersCpu(data)
+            data.mode = "play" 
+        elif data.width / 2 + 0 <= event.x <= data.width / 2 + 70 and\
+        480 <= event.y <= 560:
+            data.numPlayers -= 1
+            if data.numPlayers < 1: data.numPlayers = 1
+        elif data.width / 2 + 130 <= event.x <= data.width / 2 + 200 and\
+        480 <= event.y <= 560:
+            data.numPlayers += 1
+            if data.numPlayers > 4: data.numPlayers = 4
+    elif data.mode == "play": playMousePressed(event, data)
     elif data.mode == "pong": graphicsFunc.pongMousePressed(event, data)
     elif data.mode == "chow": graphicsFunc.chowMousePressed(event, data)
+    elif data.mode == "pause": pauseMousePressed(event, data)
 
 def keyPressed(event, data):
     if event.keysym == "p": # play with full control, all tiles revealed 
@@ -62,22 +80,33 @@ def keyPressed(event, data):
         if event.keysym == "c":
             data.cpu = True
             print("Currently in Cpu mode")
-            data.mode = "play"
-    if data.mode == "play": 
-        playKeyPressed(event, data)
-        if data.cpu == True:
             data.cpus.append(type(data.R))
             data.cpus.append(type(data.L))
             data.cpus.append(type(data.T))
+            data.mode = "play"
+    if data.mode == "play": 
+        playKeyPressed(event, data)
+
 
 def timerFired(data):
     if data.mode == "play": playTimerFired(data)
 
 def redrawAll(canvas, data):
     if data.mode == "start":
-        canvas.create_rectangle(0, 0, data.width, data.height, fill="cyan")
-        canvas.create_text(data.width / 2, data.height / 2 - 100, \
-            text="Temporary Start Screen :~)", font = "Arial 40")
+        canvas.create_image(data.width / 2, data.height / 2, image = data.startBGPng)
+        canvas.create_image(data.width / 2 + 100, 150, image = data.startMJPng)
+        canvas.create_image(data.width / 2 + 100, 350, image = data.startStartPng)
+        canvas.create_image(data.width / 2 + 100, 450, image = data.startPlayersPng)
+        canvas.create_image(data.width / 2 + 100, 520, image = data.startArrowsPng)
+        if data.numPlayers == 1:
+            canvas.create_image(data.width / 2 + 100, 520, image = data.start1Png)
+        elif data.numPlayers == 2:
+            canvas.create_image(data.width / 2 + 100, 520, image = data.start2Png)
+        elif data.numPlayers == 3:
+            canvas.create_image(data.width / 2 + 100, 520, image = data.start3Png)
+        elif data.numPlayers == 4:
+            canvas.create_image(data.width / 2 + 100, 520, image = data.start4Png)
+        """
         canvas.create_text(data.width / 2, data.height / 2 + 20, \
             text="Press 'c' to play against three cpu", font = "Arial 25")
         canvas.create_text(data.width / 2, data.height / 2 + 100, font = "Arial 25",\
@@ -88,6 +117,7 @@ def redrawAll(canvas, data):
             text= "Press 'r' at any point to return to the start screen")
         canvas.create_text(data.width / 2, data.height / 2 + 230, font = "Arial 25", \
             text= "Press 'q' to go to the winning hand screen (testing)")
+        """
     elif data.mode == "play": 
         playRedrawAll(canvas, data)
     elif data.mode == "pong": 
@@ -96,6 +126,9 @@ def redrawAll(canvas, data):
     elif data.mode == "chow":
         playRedrawAll(canvas, data)
         graphicsFunc.chowRedrawAll(canvas, data)
+    elif data.mode == "pause":
+        playRedrawAll(canvas, data)
+        graphicsFunc.pauseRedrawAll(canvas, data)
     elif data.mode == "win":
         playRedrawAll(canvas, data)
         graphicsFunc.winRedrawAll(canvas, data)
@@ -105,31 +138,42 @@ def redrawAll(canvas, data):
 
 
 def playMousePressed(event, data):
-    cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
-    if cpuTurn:
-        # have cpu choose a tile among non-melded tiles
-        cpuTiles = copy.copy(data.turnOrder[data.turnInd].tileNames)
-        meldTiles = logic.longestCombo(cpuTiles)
-        for tile in meldTiles:
-            cpuTiles.remove(tile)
-        # cpuTiles should only have tiles not already in a meld left
-        chosenTileName = random.choice(cpuTiles)
-        chosenTile = random.choice(data.turnOrder[data.turnInd].tiles) # just in case
-        for tile in data.turnOrder[data.turnInd].tiles:
-            if chosenTileName == tile[2][1]:
-                chosenTile = tile
-        event.x = chosenTile[0]
-        event.y = chosenTile[1]
-    # highlights tile if pressed
-    graphicsFunc.tilePressed(event, data)
-    if cpuTurn:
-        # make event.x and event.y "press" the discard button
-        event.x = data.width / 2
-        event.y = 2 * data.height / 3 + 100
-    # discards highlighted tile, changes turn, draws
-    graphicsFunc.discardPressed(event, data)
-    if len(data.drawPile) == 0:
-        print("game over no one wins") # temp
+    # skip right to nextTurn(data) if you were waiting to continue turn
+    if data.paused == False:
+        cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
+        if cpuTurn:
+            # have cpu choose a tile among non-melded tiles
+            cpuTiles = copy.copy(data.turnOrder[data.turnInd].tileNames)
+            meldTiles = logic.longestCombo(cpuTiles)
+            for tile in meldTiles:
+                cpuTiles.remove(tile)
+            # cpuTiles should only have tiles not already in a meld left
+            chosenTileName = random.choice(cpuTiles)
+            chosenTile = random.choice(data.turnOrder[data.turnInd].tiles) # just in case
+            for tile in data.turnOrder[data.turnInd].tiles:
+                if chosenTileName == tile[2][1]:
+                    chosenTile = tile
+            event.x = chosenTile[0]
+            event.y = chosenTile[1]
+        # highlights tile if pressed
+        graphicsFunc.tilePressed(event, data)
+        if cpuTurn:
+            # make event.x and event.y "press" the discard button
+            event.x = data.width / 2
+            event.y = 2 * data.height / 3 + 100
+        # discards highlighted tile, returns None unless a human player discards
+        if graphicsFunc.discardPressed(event, data) != None:
+            if data.mode == "pause": # don't change turn and add the tile yet if paused
+                return
+            graphicsFunc.nextTurn(data) # change turn and add tile
+            data.paused = False
+            if len(data.drawPile) == 0:
+                print("game over no one wins") # temp
+    else: # after you've come back from pausing
+        graphicsFunc.nextTurn(data) # change turn and add tile
+        data.paused = False
+        if len(data.drawPile) == 0:
+            print("game over no one wins") # temp
 
 def playKeyPressed(event,data):
     pass
@@ -140,6 +184,15 @@ def playTimerFired(data):
 def playRedrawAll(canvas, data):
     # draw background
     canvas.create_rectangle(0, 0, data.width, data.height, fill="green") 
+    canvas.create_rectangle(160, 140, data.width - 165, data.height - 155, fill="green", width = 2) 
+    # discard button
+    graphicsFunc.discardButton(canvas, data)
+    # draw tiles
+    for hand in data.turnOrder:
+        hand.drawTiles(canvas, data)
+        hand.drawMelds(canvas, data)
+    # draw discard pile
+    graphicsFunc.drawDiscard(canvas, data)
     # draw remaining draw tile count
     canvas.create_text(data.width / 2, 2 * data.height / 3, text= "Tiles Left: " + \
         str(len(data.drawPile)), font = "Arial 20")
@@ -149,15 +202,12 @@ def playRedrawAll(canvas, data):
     if data.cpu == True:
         canvas.create_text(data.width / 2, 2 * data.height / 3 + 60, \
             text="Click anywhere for the computer to make a move.", font = "Arial 20")
-    # discard button
-    graphicsFunc.discardButton(canvas, data)
-    # draw tiles
-    for hand in data.turnOrder:
-        hand.drawTiles(canvas, data)
-        hand.drawMelds(canvas, data)
-    # draw discard pile
-    graphicsFunc.drawDiscard(canvas, data)
 
+def pauseMousePressed(event, data):
+    if data.width / 3 <= event.x <= 2 * data.width / 3 and \
+    5.7 * data.height / 10 <= event.y <= 7.2 * data.height / 10:
+        data.mode = "play"
+        playMousePressed(event,data)
 
 ###########################################
 # Animation starter code from Course Notes

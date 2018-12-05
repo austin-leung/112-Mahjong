@@ -77,9 +77,12 @@ class Player(object):
 
 	# discards the chosen tile, checking for other hands' potentially using it for melds in order
 	def discardTile(self, data, handOrder):
+		if self.highlighted == None:
+			print("You can't discard if you didn't choose a tile!")
+			return
 		removed = self.tiles.pop(self.highlighted)
 		self.discarded.append(removed)
-		Player.discPile.append(removed)
+		data.discPile.append(removed)
 		self.tileNames.remove(removed[2][1])
 		self.highlighted = None
 		# check if anyone can win with the tile

@@ -26,7 +26,7 @@ class PlayerL(player.Player):
 		data.heightLeft = data.height / 2 - 15
 		tilesInd = 0
 		for i in range(1, len(self.tiles) + 1):
-			newTiles.append([ 1.5 * data.width / 10, data.heightLeft, self.tiles[tilesInd][2], False])
+			newTiles.append([ 1.3 * data.width / 10, data.heightLeft, self.tiles[tilesInd][2], False])
 			data.heightLeft += 40 * data.altMultL * i # goes right then left then right...
 			data.altMultL *= -1
 			tilesInd += 1
@@ -42,7 +42,7 @@ class PlayerL(player.Player):
 			self.addTile(data)
 			return
 		# add new tile at corresponding position
-		self.tiles.append([1.5 * data.width / 10, data.heightLeft, drawnTile, False])
+		self.tiles.append([1.3 * data.width / 10, data.heightLeft, drawnTile, False])
 		self.tileNames.append(drawnTile[1])
 		# change position of next tile
 		i = len(self.tiles)
@@ -55,11 +55,17 @@ class PlayerL(player.Player):
 		for piece in self.tiles:
 			pX = piece[0]
 			pY = piece[1]
-			self.threeDTile(canvas, pX, pY)
-			# in no cpu version, do not show tiles
-			if data.cpus != []:
+			if data.mode == "win":
+				# show the tile if it's a win
+				graphicsFunc.threeDTile(canvas, pX, pY)
+				img = piece[2][0]
+			# show back of tile if you're a cpu or it's not your turn
+			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
+				self.threeDTile(canvas, pX, pY)
 				img = data.backHPng
+			# must be your turn so show tile
 			else:
+				graphicsFunc.threeDTile(canvas, pX, pY)
 				img = piece[2][0]
 			canvas.create_image(pX, pY, image=img)
 

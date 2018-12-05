@@ -11,6 +11,8 @@ import playerB
 import playerR
 import copy
 
+
+# images photoshopped by me of actual tile pictures
 # loads the seasons and flowers
 def loadSeaFlow(data):
     for i in range(1,5):
@@ -24,6 +26,7 @@ def loadSeaFlow(data):
         #data.images.append((PhotoImage(file=flowFile), actualFileF))
         data.drawPile.append((PhotoImage(file=flowFile), actualFileF))
 
+# Most of the images from https://github.com/FluffyStuff/riichi-mahjong-tiles
 # loads the main tiles other than seasons and flowers, making 4 of each
 def loadImages(data):
     path = os.getcwd() + "/tileImages/"
@@ -35,12 +38,39 @@ def loadImages(data):
         data.images.append((PhotoImage(file=filepathName), filename))
     data.drawPile = copy.copy(data.images * 4) # 4 of each tile
 
-# loads the red back.png and backH.png
-def loadBack(data):
+# loads the miscelanneous images such as red back.png and backH.png, altered from https://github.com/FluffyStuff/riichi-mahjong-tiles
+# start bg from https://www.fotolia.com/tag/mah-jongg
+# start mahjong from https://www.randomsaladgames.com/
+# start start from https://es.kisspng.com/kisspng-907zr1/preview.html
+# start players from https://zh-cn.flamingtext.com/Word-Logos/players/
+# start arrows from https://www.flaticon.com/free-icon/left-and-right-small-triangular-arrows-couple_37456
+# start numbers from https://cliparts.zone/cute-number-4-cliparts
+# edited for size and transparent background
+def loadMisc(data):
     backFile = os.getcwd() + "/miscImages/back.png"
     data.backPng = PhotoImage(file=backFile)
     backHFile = os.getcwd() + "/miscImages/backH.png"
     data.backHPng = PhotoImage(file=backHFile)
+    startBGFile = os.getcwd() + "/miscImages/startBG.png"
+    data.startBGPng = PhotoImage(file=startBGFile)
+    startMJFile = os.getcwd() + "/miscImages/startMahjong.png"
+    data.startMJPng = PhotoImage(file=startMJFile)
+    startStartFile = os.getcwd() + "/miscImages/startStart.png"
+    data.startStartPng = PhotoImage(file=startStartFile)
+    startPlayersFile = os.getcwd() + "/miscImages/startPlayers.png"
+    data.startPlayersPng = PhotoImage(file=startPlayersFile)
+    startArrowsFile = os.getcwd() + "/miscImages/startArrows.png"
+    data.startArrowsPng = PhotoImage(file=startArrowsFile)
+    start1File = os.getcwd() + "/miscImages/start1.png"
+    data.start1Png = PhotoImage(file=start1File)
+    start2File = os.getcwd() + "/miscImages/start2.png"
+    data.start2Png = PhotoImage(file=start2File)
+    start3File = os.getcwd() + "/miscImages/start3.png"
+    data.start3Png = PhotoImage(file=start3File)
+    start4File = os.getcwd() + "/miscImages/start4.png"
+    data.start4Png = PhotoImage(file=start4File)
+
+
 
 
 # sets up the hands of each  player, randomly, drawing from the drawpile
@@ -48,6 +78,25 @@ def initialHands(data):
     # 13 per hand initially, 14 for the first player
     for hand in data.turnOrder:
         hand.initialHand(data)
+
+def setPlayersCpu(data):
+    if data.numPlayers == 4:
+        return
+    data.cpu = True
+    if data.numPlayers == 3:
+        cpu = random.choice([data.R, data.T, data.L])
+        data.cpus.append(type(cpu))
+    elif data.numPlayers == 2:
+        possCpu = [data.R, data.T, data.L]
+        cpu1 = random.choice(possCpu)
+        possCpu.remove(cpu1)
+        cpu2 = random.choice(possCpu)
+        data.cpus.append(type(cpu1))
+        data.cpus.append(type(cpu2))
+    elif data.numPlayers == 1:
+        data.cpus.append(type(data.R))
+        data.cpus.append(type(data.L))
+        data.cpus.append(type(data.T))
 
 def tilePressed(event, data):
     i = 0
@@ -72,6 +121,16 @@ def discardPressed(event, data):
     2 * data.height / 3 + 80 <= event.y <=  2 * data.height / 3 + 130:
         data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
+        # pause if you're not a cpu
+        if type(data.turnOrder[data.turnInd]) not in data.cpus:
+            data.mode = "pause"
+            data.paused = True
+            return "discarded and paused"
+        return "just discarded"
+
+
+# changes turn checks for a win, adds tile
+def nextTurn(data):
         data.turnInd += 1
         if data.turnInd >= 4:
             data.turnInd = 0
@@ -90,13 +149,13 @@ def drawDiscard(canvas, data):
     # discard pile
     i = 0 # tracks pX up to 11 tiles in row
     j = 0 # tracks pY, increments only when row is completed
-    for piece in player.Player.discPile:
-        pX = 175 + 45 * i
+    for piece in data.discPile:
+        pX = 185 + 45 * i
         pY = 175 + 55 * j
         threeDTile(canvas, pX, pY)
         canvas.create_image(pX, pY , image=piece[2][0])
         i += 1
-        if i == 11:
+        if i == 10:
              i = 0
              j += 1
 
@@ -143,7 +202,6 @@ def pongMousePressed(event, data):
     cpuTurn = type(data.pongOptHand) in data.cpus # if it's a cpu's turn
     if cpuTurn:
         # cpu should press Pong! 
-        print("pong cpu option")
         event.x = data.width / 3 + 50
         event.y = 7 * data.height / 10
     if data.width / 3 + 40 <= event.x <= data.width / 3 + 90 \
@@ -166,7 +224,7 @@ def pongMousePressed(event, data):
         data.pongOptHand.melds.append([None, None, data.secondPongTile[2], False])
         data.mode = "play"
         data.pongOptHand.reorganizeTiles(data)
-        player.Player.discPile.pop()
+        data.discPile.pop()
         # send the added tile for the following player back to the draw pile
         lastDrawnTile = data.turnOrder[data.turnInd].tiles.pop()
         data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
@@ -204,7 +262,6 @@ def chowRedrawAll(canvas, data):
 def chowMousePressed(event, data):
     cpuTurn = type(data.chowOptHand) in data.cpus # if it's a cpu's turn
     if cpuTurn:
-        print("chow cpu option")
         # cpu should press Chow! 
         event.x = data.width / 3 + 50
         event.y = 7 * data.height / 10
@@ -229,7 +286,7 @@ def chowMousePressed(event, data):
         data.chowOptHand.melds.append([None, None, data.secondChowTile[2], False]) 
         data.mode = "play"
         data.chowOptHand.reorganizeTiles(data)
-        player.Player.discPile.pop()
+        data.discPile.pop()
         # send the added tile for the following player back to the draw pile
         lastDrawnTile = data.turnOrder[data.turnInd].tiles.pop()
         data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
@@ -258,3 +315,20 @@ def winRedrawAll(canvas, data):
         if i == 7:
             j += 1
             i = 0
+
+def pauseMousePressed(event, data):
+    if data.width / 3 <= event.x <= 2 * data.width / 3 and \
+    5.7 * data.height / 10 <= event.y <= 7.2 * data.height / 10:
+        print("pause pressed")
+        data.mode = "play"
+
+
+# draw pause screen
+def pauseRedrawAll(canvas, data):
+    # background box
+    canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
+        2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
+    # pong option text
+    texty = "Click this box to continue"
+    canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 22", \
+        fill = "Gray")

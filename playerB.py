@@ -55,23 +55,31 @@ class PlayerB(player.Player):
 		for piece in self.tiles:
 			pX = piece[0]
 			pY = piece[1]
-			self.threeDTile(canvas, pX, pY)
-			# always show image
-			canvas.create_image(pX, pY, image=piece[2][0])
+			if data.mode == "win":
+				# show the tile if it's a win
+				graphicsFunc.threeDTile(canvas, pX, pY)
+				img = piece[2][0]
+			# show back of tile if you're a cpu or it's not your turn
+			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
+				self.threeDTile(canvas, pX, pY)
+				img = data.backPng
+			else:
+				graphicsFunc.threeDTile(canvas, pX, pY)
+				img = piece[2][0]
+			canvas.create_image(pX, pY, image=img)
 
-	# creates 3d appearing mahjong piece with red at back
+	# creates 3d appearing mahjong piece without red 
 	def threeDTile(self, canvas, pX, pY):
-		canvas.create_rectangle(pX - 12, pY - 28, pX + 22, pY + 18,  fill ="red", width = 0)
-		canvas.create_rectangle(pX - 14, pY - 25, pX + 20, pY + 19,  fill ="white", width = 0)
-		canvas.create_rectangle(pX - 15, pY - 24, pX + 19, pY + 20,  fill ="white", width = 0)
-		canvas.create_rectangle(pX - 16, pY - 23, pX + 18, pY + 21,  fill ="white", width = 0)
-		canvas.create_rectangle(pX - 17, pY - 22, pX + 17, pY + 22,  fill ="white", width = 0)
+		canvas.create_rectangle(pX - 11, pY - 23, pX + 18, pY + 17,  fill ="white", width = 0)
+		canvas.create_rectangle(pX - 12, pY - 22, pX + 17, pY + 18,  fill ="white", width = 0)
+		canvas.create_rectangle(pX - 13, pY - 21, pX + 16, pY + 19,  fill ="white", width = 0)
+		canvas.create_rectangle(pX - 14, pY - 20, pX + 15, pY + 20,  fill ="white", width = 0)
 
 	# draws all the melds at bottom
 	def drawMelds(self, canvas, data):
 		i = 0
 		for piece in self.melds:
-			pX = 25 + 45 * i
+			pX = 75 + 45 * i
 			pY = data.height - 35
 			graphicsFunc.threeDTile(canvas, pX, pY)
 			canvas.create_image(pX, pY, image=piece[2][0])

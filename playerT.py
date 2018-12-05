@@ -54,11 +54,16 @@ class PlayerT(player.Player):
 		for piece in self.tiles:
 			pX = piece[0]
 			pY = piece[1]
-			self.threeDTile(canvas, pX, pY)
-			# in no cpu version, do not show tiles
-			if data.cpus != []:
+			if data.mode == "win":
+				# show the tile if it's a win
+				graphicsFunc.threeDTile(canvas, pX, pY)
+				img = piece[2][0]
+			# show back of tile if you're a cpu or it's not your turn
+			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
+				self.threeDTile(canvas, pX, pY)
 				img = data.backPng
 			else:
+				graphicsFunc.threeDTile(canvas, pX, pY)
 				img = piece[2][0]
 			canvas.create_image(pX, pY, image=img)
 
