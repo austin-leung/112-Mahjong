@@ -2,6 +2,8 @@
 
 import random
 import logic
+import assist
+
 class Player(object):
 
 	discPile = []
@@ -13,6 +15,8 @@ class Player(object):
 		self.discarded = []
 		self.highlighted = None
 		self.tileNames = []
+		self.winningTiles = []
+		self.lastDrawnTileName = None
 
 	# returns True if you can pong the tile that is thrown out
 	def canPong(self, data, discTile):
@@ -29,7 +33,7 @@ class Player(object):
 			ind += 1
 		return False
 
-	# returns True if you can chow the tile that is thrown out
+	# returns True if you can chow the tile that is thrown out, sets the chow tiles that you can chow
 	def canChow(self, data, discTile):
 		discName = discTile[2][1]
 		if discName[0] not in "123456789":
@@ -38,38 +42,30 @@ class Player(object):
 		minusOne = str(int(discName[0]) - 1) +  discName[1:]
 		plusOne = str(int(discName[0]) + 1) +  discName[1:]
 		plusTwo = str(int(discName[0]) + 2) +  discName[1:]
-		b1 = False
-		b2 = False
-		for myTile in self.tiles:
-			if myTile[2][1] == minusTwo:
-				b1 = True
-				data.firstChowTile = myTile
-			if myTile[2][1] == minusOne:
-				b2 = True
-				data.secondChowTile = myTile
-		if b1 and b2:
+		m2 = None
+		m1 = None
+		p1 = None
+		p2 = None
+		for tile in self.tiles:
+			if tile[2][1] == minusTwo:
+				m2 = tile
+			elif tile[2][1] == minusOne:
+				m1 = tile
+			elif tile[2][1] == plusOne:
+				p1 = tile
+			elif tile[2][1] == plusTwo:
+				p2 = tile
+		if m2 != None and m1 != None:
+			data.firstChowTile = m2
+			data.secondChowTile = m1
 			return True
-		b3 = False
-		b4 = False
-		for myTile in self.tiles:
-			if myTile[2][1] == minusOne:
-				b3 = True
-				data.firstChowTile = myTile
-			if myTile[2][1] == plusOne:
-				b4 = True
-				data.secondChowTile = myTile
-		if b3 and b4:
+		elif m1 != None and p1 != None:
+			data.firstChowTile = m1
+			data.secondChowTile = p1
 			return True
-		b5 = False
-		b6 = False
-		for myTile in self.tiles:
-			if myTile[2][1] == plusOne:
-				b5 = True
-				data.firstChowTile = myTile
-			if myTile[2][1] == plusTwo:
-				b6 = True
-				data.secondChowTile = myTile
-		if b5 and b6:
+		elif p1 != None and p2 != None:
+			data.firstChowTile = p1
+			data.secondChowTile = p2
 			return True
 		return False
 
@@ -85,12 +81,16 @@ class Player(object):
 		data.discPile.append(removed)
 		self.tileNames.remove(removed[2][1])
 		self.highlighted = None
+		# update winning tiles everytime a tile is discarded
+		self.winningTiles = logic.winningTiles(data.imageNames, self)
 		# check if anyone can win with the tile
 		for hand in handOrder:
-			if removed[2][1] in logic.winningTiles(data.imageNames, hand.tileNames):
+			if removed[2][1] in hand.winningTiles:
 				hand.tiles.append(removed)
 				hand.tileNames.append(removed[2][1])
-				print("should win")
+				print("Won from someone else's tile!")
+				print("Loser: " + self.name)
+				assist.sortTiles(data, self)
 				data.winner = hand.name
 				data.winningHand = hand.melds + hand.tiles
 				data.mode = "win"

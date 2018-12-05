@@ -10,14 +10,17 @@ import playerB
 import playerR
 import graphicsFunc
 import cpu
+import assist
 random.seed(11)
 # ---------------------- Control Center ------------------------- #
 # Mode structure from course notes
 
 def init(data):
     data.mode = "start"
+    data.assistMode = False
     data.images = []
     data.imageNames = []
+    data.imageDict = {}
     data.drawPile = [] 
     data.discPile = []
     data.B = playerB.PlayerB()
@@ -32,11 +35,12 @@ def init(data):
     graphicsFunc.loadMisc(data)
     for image in data.images:
         data.imageNames.append(image[1])
+        data.imageDict[image[1]] = image[0]
     data.turnOrder[data.turnInd].addTile(data) # first player draws
     data.winningHand = data.turnOrder[data.turnInd].tiles + data.turnOrder[data.turnInd].melds
     data.winner = data.turnOrder[data.turnInd].name
     data.cpu = False
-    data.cpus = []
+    data.cpus = [] 
     data.numPlayers = 1
     data.paused = False
     # L = ['6bamboo.png', '7bamboo.png', '9dot.png', '6bamboo.png', '8character.png','7character.png', \
@@ -140,6 +144,7 @@ def redrawAll(canvas, data):
 def playMousePressed(event, data):
     # skip right to nextTurn(data) if you were waiting to continue turn
     if data.paused == False:
+        assist.assistModePressed(event, data)
         cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
         if cpuTurn:
             # have cpu choose a tile among non-melded tiles
@@ -159,8 +164,11 @@ def playMousePressed(event, data):
         graphicsFunc.tilePressed(event, data)
         if cpuTurn:
             # make event.x and event.y "press" the discard button
-            event.x = data.width / 2
+            event.x = data.width / 2 - 100
             event.y = 2 * data.height / 3 + 100
+        # can't discard if you have no tile highlighted
+        if data.turnOrder[data.turnInd].highlighted == None:
+            return 
         # discards highlighted tile, returns None unless a human player discards
         if graphicsFunc.discardPressed(event, data) != None:
             if data.mode == "pause": # don't change turn and add the tile yet if paused
@@ -185,6 +193,11 @@ def playRedrawAll(canvas, data):
     # draw background
     canvas.create_rectangle(0, 0, data.width, data.height, fill="green") 
     canvas.create_rectangle(160, 140, data.width - 165, data.height - 155, fill="green", width = 2) 
+    # assist check
+    if data.assistMode == False:
+        canvas.create_image(data.width - 25, data.height - 25, image = data.assistCheckPng)
+    elif data.assistMode == True:
+        canvas.create_image(data.width - 25, data.height - 25, image = data.assistCheckedPng)
     # discard button
     graphicsFunc.discardButton(canvas, data)
     # draw tiles
@@ -202,6 +215,9 @@ def playRedrawAll(canvas, data):
     if data.cpu == True:
         canvas.create_text(data.width / 2, 2 * data.height / 3 + 60, \
             text="Click anywhere for the computer to make a move.", font = "Arial 20")
+    # only show the winning tiles if not cpu
+    if data.assistMode == True and type(data.turnOrder[data.turnInd]) not in data.cpus:
+        assist.drawWinningTiles(data, canvas)
 
 def pauseMousePressed(event, data):
     if data.width / 3 <= event.x <= 2 * data.width / 3 and \

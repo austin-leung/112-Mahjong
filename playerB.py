@@ -3,6 +3,7 @@ import random
 import graphicsFunc
 import logic
 import copy
+import assist
 random.seed(11)
 class PlayerB(player.Player):
 
@@ -23,12 +24,11 @@ class PlayerB(player.Player):
 	# recenters tiles based on the number of tiles left in the hand
 	def reorganizeTiles(self, data):
 		newTiles = []
-		data.widthBot = data.width / 2
+		data.widthBot = data.width / 2 - 40 * (len(self.tiles) // 2)
 		tilesInd = 0
 		for i in range(1, len(self.tiles) + 1):
 			newTiles.append([data.widthBot, 10.5 * data.height / 12, self.tiles[tilesInd][2], False])
-			data.widthBot += 40 * data.altMultB * i
-			data.altMultB *= -1
+			data.widthBot += 40
 			tilesInd += 1
 		self.tiles = newTiles
 
@@ -44,10 +44,9 @@ class PlayerB(player.Player):
 		# add new tile at corresponding position
 		self.tiles.append([data.widthBot, 10 * data.height / 12, drawnTile, False])
 		self.tileNames.append(drawnTile[1])
-		# change position of next tile
-		i = len(self.tiles)
-		data.widthBot += 40 * data.altMultB * i
-		data.altMultB *= -1
+		self.lastDrawnTileName = drawnTile[1]
+		if data.assistMode == True:
+			assist.sortTiles(data, self)
 
 
 	# draws tiles showing the images
@@ -57,6 +56,10 @@ class PlayerB(player.Player):
 			pY = piece[1]
 			if data.mode == "win":
 				# show the tile if it's a win
+				graphicsFunc.threeDTile(canvas, pX, pY)
+				img = piece[2][0]
+			# always show if you're the only player
+			elif data.numPlayers == 1:
 				graphicsFunc.threeDTile(canvas, pX, pY)
 				img = piece[2][0]
 			# show back of tile if you're a cpu or it's not your turn

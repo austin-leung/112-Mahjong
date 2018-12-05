@@ -3,6 +3,7 @@ import random
 import graphicsFunc
 import logic
 import copy
+import assist
 random.seed(11)
 class PlayerR(player.Player):
 
@@ -23,12 +24,11 @@ class PlayerR(player.Player):
 	# recenters tiles based on the number of tiles left in the hand
 	def reorganizeTiles(self, data):
 		newTiles = []
-		data.heightRight = data.height / 2 - 15
+		data.heightRight = data.height / 2 - 15 - 40 * (len(self.tiles) // 2)
 		tilesInd = 0
 		for i in range(1, len(self.tiles) + 1):
 			newTiles.append([8.7 * data.width / 10, data.heightRight, self.tiles[tilesInd][2], False])
-			data.heightRight += 40 * data.altMultR * i
-			data.altMultR *= -1
+			data.heightRight += 40
 			tilesInd += 1
 		self.tiles = newTiles
 
@@ -44,10 +44,9 @@ class PlayerR(player.Player):
 		# add new tile at corresponding position
 		self.tiles.append([8.7 * data.width / 10, data.heightRight, drawnTile, False])
 		self.tileNames.append(drawnTile[1])
-		# change position of next tile
-		i = len( self.tiles)
-		data.heightRight += 40 * data.altMultR * i
-		data.altMultR *= -1
+		self.lastDrawnTileName = drawnTile[1]
+		if data.assistMode == True:
+			assist.sortTiles(data, self)
 
 	# draws horizontal tile with hidden image
 	def drawTiles(self, canvas, data):

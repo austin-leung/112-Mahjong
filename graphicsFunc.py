@@ -45,6 +45,7 @@ def loadImages(data):
 # start players from https://zh-cn.flamingtext.com/Word-Logos/players/
 # start arrows from https://www.flaticon.com/free-icon/left-and-right-small-triangular-arrows-couple_37456
 # start numbers from https://cliparts.zone/cute-number-4-cliparts
+# assist checks from https://www.nuget.org/packages/awesome-bootstrap-checkbox-aspnet-mvc/
 # edited for size and transparent background
 def loadMisc(data):
     backFile = os.getcwd() + "/miscImages/back.png"
@@ -69,6 +70,10 @@ def loadMisc(data):
     data.start3Png = PhotoImage(file=start3File)
     start4File = os.getcwd() + "/miscImages/start4.png"
     data.start4Png = PhotoImage(file=start4File)
+    assistCheckFile = os.getcwd() + "/miscImages/assistCheck.png"
+    data.assistCheckPng = PhotoImage(file=assistCheckFile)
+    assistCheckedFile = os.getcwd() + "/miscImages/assistChecked.png"
+    data.assistCheckedPng = PhotoImage(file=assistCheckedFile)
 
 
 
@@ -117,12 +122,12 @@ def tilePressed(event, data):
 
 # discards highlighted tile if you click on the discard button, changes turn, next draws
 def discardPressed(event, data):
-    if data.width / 2 - 120 <= event.x < data.width / 2 + 120  and \
-    2 * data.height / 3 + 80 <= event.y <=  2 * data.height / 3 + 130:
+    if data.width / 2 - 260 <= event.x < data.width / 2 - 20  and \
+    2 * data.height / 3 + 80 <= event.y <= 2 * data.height / 3 + 135:
         data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
-        # pause if you're not a cpu
-        if type(data.turnOrder[data.turnInd]) not in data.cpus:
+        # pause if you're not a cpu (and you're not the only player in the game)
+        if type(data.turnOrder[data.turnInd]) not in data.cpus and data.numPlayers != 1:
             data.mode = "pause"
             data.paused = True
             return "discarded and paused"
@@ -131,18 +136,18 @@ def discardPressed(event, data):
 
 # changes turn checks for a win, adds tile
 def nextTurn(data):
-        data.turnInd += 1
-        if data.turnInd >= 4:
-            data.turnInd = 0
-        data.turnOrder[data.turnInd].addTile(data)
-        # don't be destructive
-        tileNames = copy.copy(data.turnOrder[data.turnInd].tileNames)
-        # check if you won after adding a tile
-        checkWin = logic.winningCombo(tileNames)
-        if checkWin != None:
-            print(checkWin, "Won from draw!")
-            data.mode = "win"
-        data.turnOrder[data.turnInd].reorganizeTiles(data)
+    data.turnInd += 1
+    if data.turnInd >= 4:
+        data.turnInd = 0
+    hand = data.turnOrder[data.turnInd]
+    hand.addTile(data)
+    #print(lastDrawnTile[2][0], lastDrawnTile[2][1], hand.winningTiles, hand.name)
+    if hand.lastDrawnTileName in hand.winningTiles:
+        print("Won from draw!")
+        data.winner = hand.name
+        data.winningHand = hand.melds + hand.tiles
+        data.mode = "win"
+    hand.reorganizeTiles(data)
 
 # draws the discard pile in the center of the table
 def drawDiscard(canvas, data):
@@ -169,10 +174,10 @@ def threeDTile(canvas, pX, pY):
 
 # makes a discard button
 def discardButton(canvas, data):
-    canvas.create_rectangle(data.width / 2 - 120, 2 * data.height / 3 + 80, \
-        data.width / 2 + 120, 2 * data.height / 3 + 130, fill = "pink")
-    canvas.create_text(data.width / 2, 2 * data.height / 3 + 105, text="Discard chosen tile", font = "Arial 25", \
-        fill = "Gray")
+    canvas.create_rectangle(data.width / 2 - 260, 2 * data.height / 3 + 80, \
+        data.width / 2 - 20, 2 * data.height / 3 + 135, fill = "pink")
+    canvas.create_text(data.width / 2 - 140, 2 * data.height / 3 + 105, text="Discard chosen tile", \
+        font = "Arial 25", fill = "Gray")
 
 # draw pong
 def pongRedrawAll(canvas, data):

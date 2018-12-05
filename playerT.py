@@ -3,6 +3,7 @@ import random
 import graphicsFunc
 import logic
 import copy
+import assist
 random.seed(11)
 class PlayerT(player.Player):
 
@@ -23,12 +24,11 @@ class PlayerT(player.Player):
 	# recenters tiles based on the number of tiles left in the hand
 	def reorganizeTiles(self, data):
 		newTiles = []
-		data.widthTop = data.width / 2
+		data.widthTop = data.width / 2  - 40 * (len(self.tiles) // 2)
 		tilesInd = 0
 		for i in range(1, len(self.tiles) + 1):
 			newTiles.append([data.widthTop, 1.5 * data.height / 12, self.tiles[tilesInd][2], False])
-			data.widthTop += 40 * data.altMultT * i
-			data.altMultT *= -1
+			data.widthTop += 40
 			tilesInd += 1
 		self.tiles = newTiles
 
@@ -44,10 +44,9 @@ class PlayerT(player.Player):
 		# add new tile at corresponding position
 		self.tiles.append([data.widthTop, 1.2 * data.height / 12, drawnTile, False])
 		self.tileNames.append(drawnTile[1])
-		# change position of next tile
-		i = len(self.tiles)
-		data.widthTop += 40 * data.altMultT * i
-		data.altMultT *= -1
+		self.lastDrawnTileName = drawnTile[1]
+		if data.assistMode == True:
+			assist.sortTiles(data, self)
 
 	# creates 3d appearing mahjong piece with red background in front
 	def drawTiles(self, canvas, data):

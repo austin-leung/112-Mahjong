@@ -140,13 +140,15 @@ def longestCombo(tileLst, winCombo = None, curLongCombo = None):
 	return curLongCombo
 
 # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
-def winningTiles(imageNames, tileLst):
+def winningTiles(imageNames, hand):
+	tileLst = hand.tileNames
 	winningTiles = []
 	for tileName in imageNames:
 		newTileLst = tileLst + [tileName]
 		if winningCombo(newTileLst):
 			winningTiles.append(tileName)
 	return winningTiles
+
 
 # # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
 # def winningTiles(tileLst, winCombo = None, winTiles = None):
