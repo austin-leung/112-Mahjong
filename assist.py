@@ -1,10 +1,12 @@
 # assist.py contains functions for assist mode
 import copy
+import logic
 
 # toggles assist mode when the button is pressed
 def assistModePressed(event, data):
 	if data.width - 50 <= event.x and data.height - 50 <= event.y:
 		data.assistMode = not data.assistMode
+		return "toggled"
 
 # sorts tiles
 def sortTiles(data, hand):
@@ -33,6 +35,48 @@ def sortTiles(data, hand):
 	# directions, winds, dragons last
 	tileNamesCopy.sort()
 	hand.tileNames = bamboos + dots + characters + tileNamesCopy
+	sortedTileNames = copy.copy(hand.tileNames)
+	newHand = [0] * len(hand.tileNames)
+	for tile in hand.tiles:
+		# add the tiles in order corresponding to the tileNames order
+		sortedInd = sortedTileNames.index(tile[2][1])
+		newImgTile = (data.imageDict[sortedTileNames[sortedInd]], sortedTileNames[sortedInd])
+		newHand[sortedInd] = [tile[0], tile[1], newImgTile, False]
+		sortedTileNames[sortedInd] = -1 # don't index to that tileName again
+	hand.tiles = newHand
+
+def sortTilesMeld(data, hand):
+	tileNamesCopy = copy.copy(hand.tileNames)
+	meldHand = logic.longestCombo(tileNamesCopy)
+	tileNamesCopy2 = copy.copy(hand.tileNames)
+	for name in meldHand:
+		tileNamesCopy2.remove(name)
+	copyRest = copy.copy(tileNamesCopy2)
+	# bamboo first
+	bamboos = []
+	for name in tileNamesCopy2:
+		if name[1:] == "bamboo.png":
+			bamboos.append(name)
+			copyRest.remove(name)
+	# dots second
+	dots = []
+	for name in tileNamesCopy2:
+		if name[1:] == "dot.png":
+			dots.append(name)
+			copyRest.remove(name)
+	# characters second
+	characters = []
+	for name in tileNamesCopy2:
+		if name[1:] == "character.png":
+			characters.append(name)
+			copyRest.remove(name)
+	bamboos.sort()
+	dots.sort()
+	characters.sort()
+	# directions, winds, dragons last
+	tileNamesCopy.sort()
+	sortedRest = bamboos + dots + characters + copyRest
+	hand.tileNames = meldHand + sortedRest
 	sortedTileNames = copy.copy(hand.tileNames)
 	newHand = [0] * len(hand.tileNames)
 	for tile in hand.tiles:

@@ -46,7 +46,11 @@ class PlayerT(player.Player):
 		self.tileNames.append(drawnTile[1])
 		self.lastDrawnTileName = drawnTile[1]
 		if data.assistMode == True:
-			assist.sortTiles(data, self)
+			if data.meldsFirst == True:
+				assist.sortTilesMeld(data, self)
+			else:
+				# sort normally
+				assist.sortTiles(data, self)
 
 	# creates 3d appearing mahjong piece with red background in front
 	def drawTiles(self, canvas, data):

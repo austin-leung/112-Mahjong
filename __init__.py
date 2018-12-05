@@ -43,9 +43,7 @@ def init(data):
     data.cpus = [] 
     data.numPlayers = 1
     data.paused = False
-    # L = ['6bamboo.png', '7bamboo.png', '9dot.png', '6bamboo.png', '8character.png','7character.png', \
-    # '9dot.png', '6character.png','6bamboo.png', '8bamboo.png']
-    # print(logic.winningTiles(data.imageNames, L))
+    data.meldsFirst = False
 
 
 def mousePressed(event, data):
@@ -80,6 +78,9 @@ def keyPressed(event, data):
             print(hand.name)
             print(hand.tiles, "tiles")
             print(hand.melds, "melds")
+    if event.keysym == "s": # toggle sort method
+        data.meldsFirst = not data.meldsFirst
+        print("Sort by melds first? " + data.meldsFirst)
     if data.mode == "start":
         if event.keysym == "c":
             data.cpu = True
@@ -142,9 +143,10 @@ def redrawAll(canvas, data):
 
 
 def playMousePressed(event, data):
+    if assist.assistModePressed(event, data) != None:
+        return # don't go to next turn, etc. if you click on the assist mode check
     # skip right to nextTurn(data) if you were waiting to continue turn
     if data.paused == False:
-        assist.assistModePressed(event, data)
         cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
         if cpuTurn:
             # have cpu choose a tile among non-melded tiles

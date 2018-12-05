@@ -115,7 +115,6 @@ def winningCombo(tileLst, winCombo = None):
 					return tmp
 	return None
 
-
 # recursive backtracking to find the longest possible combo from tileLst
 # may return a winning combo if possible
 def longestCombo(tileLst, winCombo = None, curLongCombo = None):
@@ -149,43 +148,154 @@ def winningTiles(imageNames, hand):
 			winningTiles.append(tileName)
 	return winningTiles
 
+# takes list of tile names (should be hand and meld) and returns score of the hand
+def handScore(tileLst):
+	handCombo = longestComboScore(tileLst)
+	dragons = 0
+	winds = 0
+	# count winds and dragons
+	if handCombo[0].count("dred.png") >= 3:
+		dragons += 1
+	if handCombo[0].count("dwhite.png") >= 3:
+		dragons += 1
+	if handCombo[0].count("dgreen.png") >= 3:
+		dragons += 1
+	if handCombo[0].count("weast.png") >= 3:
+		winds += 1
+	if handCombo[0].count("wwest.png") >= 3:
+		winds += 1
+	if handCombo[0].count("wnorth.png") >= 3:
+		winds += 1
+	if handCombo[0].count("wsouth.png") >= 3:
+		winds += 1
+	pts = 0
+	if handCombo[1] == True and handCombo[2] == False: # 3 pts for all pong
+		pts += 3
+		print("All Pong +3")
+	if handCombo[1] == False and handCombo[2] == True: # 1 pt for all chow
+		pts += 1
+		print("All Chow + 1")
+	# all suit w/ honors is +3, all suits is +6
+	# all bamboo
+	if handCombo[3] == True and handCombo[4] == False and handCombo[5] == False:
+		pts += 3
+		print("All Bamboo w/ Honors +3")
+		if winds == 0 and dragons == 0:
+			pts += 3
+			print("All Bamboo +3")
+	# all dot
+	if handCombo[3] == False and handCombo[4] == True and handCombo[5] == False:
+		pts += 3
+		print("All Dot w/ Honors +3")
+		if winds == 0 and dragons == 0:
+			pts += 3
+			print("All Dot +3")
+	# all character
+	if handCombo[3] == False and handCombo[4] == False and handCombo[5] == True:
+		pts += 3
+		print("All Character w/ Honors +3")
+		if winds == 0 and dragons == 0:
+			pts += 3
+			print("All Character +3")
+	# point for each wind pong
+	if winds > 0: 
+		pts += winds
+		print(str(winds) + " Winds +" + str(winds))
+	# point for each dragon pong
+	if dragons > 0:
+		pts += dragons
+		print(str(dragons) + " Dragon(s) +" + str(dragons))
+	return pts
 
-# # recursive backtracking to find the all singular tiles that could make the tileLst hand winning
-# def winningTiles(tileLst, winCombo = None, winTiles = None):
-# 	if winTiles == None:
-# 		winTiles = []
-# 		winCombo = []
-# 	# in this condition, a winning hand would be possible, which should already be addressed 
-# 	# by winningCombo(tileLst, winCombo = None)
-# 	assert(not (len(tileLst) == 2 and tileLst[0] == tileLst[1]))
-# 	# need a tile matching last tile to make a pair
-# 	if len(tileLst) == 1:
-# 		return tileLst[0] + winTiles
-# 	# because 5 tiles could win 
-# 	if len(tileLst) == 4:
-# 		tryLst = []
-# 		for tile in tileLst:
-# 			tryLst.append(tile)
-# 			if tile[0] in "123456789":
-# 				plusOne = (int(tile[0]) + 1) + tile[1:]
-# 				minusOne = (int(tile[0]) - 1) + tile[1:]
-# 				tryLst.append(plusOne)
-# 				tryLst.append(minusOne)
-# 		for tile in tryLst:
-# 			tryTileLst = tileLst + tile
-# 			if winningCombo(tryTileLst):
-# 				return tile + winTiles
-# 	else:
-# 		for threeSet in threePowerset(tileLst):
-# 			if isPong(threeSet) or isChow(threeSet):
-# 				newWinCombo = winCombo + threeSet
-# 				newTileLst = tileLst + threeSet
-# 				for tile in threeSet:
-# 					newTileLst.remove(tile)
-# 				tmp = winningCombo(newTileLst, newWinCombo, winTiles)
-# 				if tmp != None:
-# 					return tmp
-# 	return None
+
+# recursion to find the longest possible combo from tileLst
+# may return a winning combo if possible
+def longestComboScore(tileLst, winCombo = None, curLongCombo = None, anyPong = False, anyChow = False,\
+	anyBamboo = False, anyDot = False, anyCharacter = False):
+	if winCombo == None:
+		winCombo = []
+		curLongCombo = []
+		copyL = copy.copy(L)
+		# get rid of flowers and seasons
+		for tile in tileLst:
+			if tile[0] == "f" or tile[0] == "s":
+				copyL.remove(tile)
+		tileLst = copyL
+	#print(winCombo, "w")
+	#print(curLongCombo)
+	# final combo should always be a winning pair, not a meld
+	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
+		return (curLongCombo, anyPong, anyChow, anyBamboo, anyDot, anyCharacter)
+	else:
+		for threeSet in threePowerset(tileLst):
+			if isPong(threeSet):
+				newWinCombo = winCombo + threeSet
+				if len(newWinCombo) > len(curLongCombo):
+					curLongCombo = newWinCombo[:]
+				newTileLst = tileLst[:]
+				bmb = True
+				dot = True
+				chara = True
+				windOrDragon = False
+				for tile in threeSet:
+					newTileLst.remove(tile)
+				# point for dragon pong (special)
+				if threeSet[0][0] == "d":
+					windOrDragon = True
+				# pong of wind should just change the anyWind
+				if threeSet[0][0] == "w":
+					windOrDragon = True
+				if threeSet[0][1:] != "bamboo.png":
+					bmb = False
+				if threeSet[0][1:] != "dot.png":
+					dot = False
+				if threeSet[0][1:] != "character.png":
+					chara = False
+				# okay to have honors and still be all of one suit, keep status quo
+				if windOrDragon == True:
+					tmp = longestComboScore(newTileLst, newWinCombo, curLongCombo, True, anyChow,\
+					anyBamboo, anyDot, anyCharacter)
+				else:
+					tmp = longestComboScore(newTileLst, newWinCombo, curLongCombo, True, anyChow,\
+						anyBamboo or bmb, anyDot or dot, anyCharacter or chara)
+				if len(tmp[0]) > len(curLongCombo):
+					curLongCombo = tmp[0]
+					anyPong = tmp[1]
+					anyChow = tmp[2]
+					anyBamboo = tmp[3]
+					anyDot = tmp[4]
+					anyCharacter = tmp[5]
+			elif isChow(threeSet):
+				newWinCombo = winCombo + threeSet
+				if len(newWinCombo) > len(curLongCombo):
+					curLongCombo = newWinCombo[:]
+				newTileLst = tileLst[:]
+				bmb = True
+				dot = True
+				chara = True
+				for tile in threeSet:
+					newTileLst.remove(tile)
+				if threeSet[0][1:] != "bamboo.png":
+					bmb = False
+				if threeSet[0][1:] != "dot.png":
+					dot = False
+				if threeSet[0][1:] != "character.png":
+					chara = False
+				tmp = longestComboScore(newTileLst, newWinCombo, curLongCombo, anyPong, True,\
+					anyBamboo or bmb, anyDot or dot, anyCharacter or chara)
+				if len(tmp[0]) > len(curLongCombo):
+					curLongCombo = tmp[0]
+					anyPong = tmp[1]
+					anyChow = tmp[2]
+					anyBamboo = tmp[3]
+					anyDot = tmp[4]
+					anyCharacter = tmp[5]
+	return (curLongCombo, anyPong, anyChow, anyBamboo, anyDot, anyCharacter)
+
+L = ['f4.png', 's1.png', '2dot.png', '3dot.png', '4dot.png', '8dot.png', '6dot.png', '7dot.png', '6dot.png', '4dot.png', '5dot.png', '7dot.png', '7dot.png', 'dgreen.png', 'dgreen.png', 'dgreen.png']
+#print(longestComboScore(L), "LCS")
+#print(handScore(L))
+
 
 # testing / debugging
 L = ['4dot.png', '9bamboo.png', '7bamboo.png', '4dot.png','8character.png','7character.png', \

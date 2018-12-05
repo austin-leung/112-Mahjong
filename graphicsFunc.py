@@ -146,6 +146,11 @@ def nextTurn(data):
         print("Won from draw!")
         data.winner = hand.name
         data.winningHand = hand.melds + hand.tiles
+        winningHandNames = []
+        for tile in data.winningHand:
+            winningHandNames.append(tile[2][1])
+        print("Hand Score: " + str(logic.handScore(winningHandNames)))
+        print(winningHandNames)
         data.mode = "win"
     hand.reorganizeTiles(data)
 

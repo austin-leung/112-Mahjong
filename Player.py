@@ -69,8 +69,6 @@ class Player(object):
 			return True
 		return False
 
-
-
 	# discards the chosen tile, checking for other hands' potentially using it for melds in order
 	def discardTile(self, data, handOrder):
 		if self.highlighted == None:
@@ -93,6 +91,11 @@ class Player(object):
 				assist.sortTiles(data, self)
 				data.winner = hand.name
 				data.winningHand = hand.melds + hand.tiles
+				winningHandNames = []
+				for tile in data.winningHand:
+					winningHandNames.append(tile[2][1])
+				print("Hand Score: " + str(logic.handScore(winningHandNames)))
+				print(winningHandNames)
 				data.mode = "win"
 				return
 		# check if anyone can pong or chow the tile
@@ -105,8 +108,3 @@ class Player(object):
 				data.chowOptHand = hand
 				data.chowOptTile = removed
 				data.mode = "chow"
-
-
-	
-
-
