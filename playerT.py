@@ -64,7 +64,8 @@ class PlayerT(player.Player):
 				graphicsFunc.threeDTile(canvas, pX, pY)
 				img = piece[2][0]
 			# show back of tile if you're a cpu or it's not your turn
-			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
+			elif type(self) in data.cpus \
+			or type(data.turnOrder[data.turnInd]) != type(self) or data.mode == "pause":
 				self.threeDTile(canvas, pX, pY)
 				img = data.backPng
 			else:

@@ -28,7 +28,7 @@ class PlayerL(player.Player):
 		newTiles = []
 		data.heightLeft = data.height / 2 - 15 - 40 * (len(self.tiles) // 2)
 		tilesInd = 0
-		for i in range(1, len(self.tiles) + 1):
+		for i in range(1, len(self.tiles) + 1): 
 			newTiles.append([ 1.3 * data.width / 10, data.heightLeft, self.tiles[tilesInd][2], False])
 			data.heightLeft += 40
 			tilesInd += 1
@@ -66,7 +66,8 @@ class PlayerL(player.Player):
 				tileName = piece[2][1]
 				img = data.imageDictL[tileName]
 			# show back of tile if you're a cpu or it's not your turn
-			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
+			elif type(self) in data.cpus \
+			or type(data.turnOrder[data.turnInd]) != type(self) or data.mode == "pause":
 				self.threeDTile(canvas, pX, pY)
 				img = data.backHPng
 			# must be your turn so show tile

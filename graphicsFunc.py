@@ -199,9 +199,9 @@ def discardPressed(event, data):
         data.turnOrder[data.turnInd].reorganizeTiles(data)
         # pause if you're not a cpu (and you're not the only player in the game)
         if type(data.turnOrder[data.turnInd]) not in data.cpus and data.numPlayers != 1:
-            data.mode = "pause"
-            data.paused = True
-            return "discarded and paused"
+                data.mode = "pause"
+                data.paused = True
+                return "discarded and paused"
         return "just discarded"
 
 # changes turn checks for a win, adds tile
@@ -315,6 +315,8 @@ def pongMousePressed(event, data):
         data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
         data.drawPile.append(lastDrawnTile[2])
         data.turnInd = data.turnOrder.index(data.pongOptHand)
+        if data.assistMode == True:
+            data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
         data.mode = "play"
     # press Skip
     elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
@@ -379,6 +381,8 @@ def chowMousePressed(event, data):
         data.turnOrder[data.turnInd].tileNames.remove(lastDrawnTile[2][1])
         data.drawPile.append(lastDrawnTile[2])
         data.turnInd = data.turnOrder.index(data.chowOptHand)
+        if data.assistMode == True:
+            data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
     # press Skip
     elif 2 * data.width / 3 - 90 <= event.x <= 2 * data.width / 3 - 40 \
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
@@ -419,11 +423,6 @@ def winRedrawAll(canvas, data):
             i = 0
 
 #---------------------- Pause Mode -------------------------- #
-
-def pauseMousePressed(event, data):
-    if data.width / 3 - 70 <= event.x <= 2 * data.width / 3 + 70 and \
-    6 * data.height / 10 <= event.y <= 6.6 * data.height / 10:
-        data.mode = "play"
 
 # draw pause screen
 def pauseRedrawAll(canvas, data):

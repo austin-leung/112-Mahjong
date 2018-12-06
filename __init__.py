@@ -84,7 +84,7 @@ def mousePressed(event, data):
     elif data.mode == "play": playMousePressed(event, data)
     elif data.mode == "pong": graphicsFunc.pongMousePressed(event, data)
     elif data.mode == "chow": graphicsFunc.chowMousePressed(event, data)
-    elif data.mode == "pause": graphicsFunc.pauseMousePressed(event, data)
+    elif data.mode == "pause": pauseMousePressed(event, data)
     elif data.mode == "drawn": graphicsFunc.drawnMousePressed(event, data)
     elif data.mode == "win": graphicsFunc.winMousePressed(event, data)
     if data.mode == "toStart": # back to start mode
@@ -178,12 +178,11 @@ def redrawAll(canvas, data):
 #---------------------- Play Mode -------------------------- #
 
 def playMousePressed(event, data):
-    if assist.assistModePressed(event, data) != None:
-        return # don't go to next turn, etc. if you click on the assist mode check
-    if data.assistMode == True:
+    if assist.assistModePressed(event, data) != None and data.assistMode == True:
         data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
-    if data.turnOrder[data.turnInd].name == "Left":
-        print(data.turnOrder[data.turnInd].tiles)
+        assist.sortTiles(data, data.turnOrder[data.turnInd])
+        assist.sortTilesMeld(data, data.turnOrder[data.turnInd])
+        return # don't go to next turn, etc. if you click on the assist mode check
     # skip right to nextTurn(data) if you were waiting to continue turn
     if data.paused == False:
         cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
@@ -260,15 +259,15 @@ def playRedrawAll(canvas, data):
     # draw remaining draw tile count
     canvas.create_text(data.width / 2 - 80, 2 * data.height / 3 + 125, text= "Tiles Left: " + \
         str(len(data.drawPile)), font = "Arial 15", fill = "light goldenrod")
-    if data.cpu == True:
+    if data.cpu == True: # no cpu text if no cpus
         canvas.create_text(data.width / 2 - 80, 2 * data.height / 3 + 88, \
             text="Click\nanywhere for\na cpu move.", font = "Arial 15", fill = "gold2")
 
 def pauseMousePressed(event, data):
-    if data.width / 3 <= event.x <= 2 * data.width / 3 and \
-    5.7 * data.height / 10 <= event.y <= 7.2 * data.height / 10:
+    if data.width / 3 - 70 <= event.x <= 2 * data.width / 3 + 70 and \
+    6 * data.height / 10 <= event.y <= 6.6 * data.height / 10:
         data.mode = "play"
-        playMousePressed(event,data)
+        mousePressed(event, data)
 
 ###########################################
 # Animation starter code from Course Notes

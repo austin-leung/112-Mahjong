@@ -81,7 +81,11 @@ class Player(object):
 			data.curRemoved = removed
 			data.widthIncr = (data.width / 2 - data.curRemoved[0]) / 4
 			data.heightIncr = (data.height / 2 - data.curRemoved[1]) / 4
-			data.mode = "moving"
+			if len(data.cpus) == 3:
+				data.mode = "moving"
+			else:
+				self.discardTileAfterAni(data, handOrder, data.curRemoved)
+				data.mode = "pause"
 
 	# continue after discarding tile and after the subsequent moving animation
 	def discardTileAfterAni(self, data, handOrder, removed):
@@ -97,6 +101,11 @@ class Player(object):
 		# check if anyone can win with the tile
 		for hand in handOrder:
 			if removed[2][1] in hand.winningTiles:
+				if type(removed) == int:
+					print("LALALALA")
+					print()
+					print()
+					print("ALALA")
 				hand.tiles.append(removed)
 				hand.tileNames.append(removed[2][1])
 				print("Won from someone else's tile!")
