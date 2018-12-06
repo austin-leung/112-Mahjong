@@ -1,4 +1,5 @@
 # graphicsFunc.py contains helper functions for graphics
+
 from tkinter import *
 import os
 import random
@@ -11,6 +12,7 @@ import playerB
 import playerR
 import copy
 
+#---------------------- Init Functions -------------------------- #
 
 # images photoshopped by me of actual tile pictures
 # loads the seasons and flowers
@@ -38,6 +40,30 @@ def loadImages(data):
         data.images.append((PhotoImage(file=filepathName), filename))
     data.drawPile = copy.copy(data.images * 4) # 4 of each tile
 
+# Most of the images from https://github.com/FluffyStuff/riichi-mahjong-tiles
+def loadImagesL(data):
+    path = os.getcwd() + "/tileLImages/"
+    for filename in os.listdir(path):
+        if filename == ".DS_Store": # ignore this
+            continue
+        filepathName = path + filename
+        # store in tuple, image, filename. filename is for ex. "2bamboo.png"
+        data.imagesL.append((PhotoImage(file=filepathName), filename))
+    for image in data.imagesL:
+        data.imageDictL[image[1]] = image[0]
+
+# Most of the images from https://github.com/FluffyStuff/riichi-mahjong-tiles
+def loadImagesR(data):
+    path = os.getcwd() + "/tileRImages/"
+    for filename in os.listdir(path):
+        if filename == ".DS_Store": # ignore this
+            continue
+        filepathName = path + filename
+        # store in tuple, image, filename. filename is for ex. "2bamboo.png"
+        data.imagesR.append((PhotoImage(file=filepathName), filename))
+    for image in data.imagesR:
+        data.imageDictR[image[1]] = image[0]
+
 # loads the miscelanneous images such as red back.png and backH.png, altered from https://github.com/FluffyStuff/riichi-mahjong-tiles
 # start bg from https://www.fotolia.com/tag/mah-jongg
 # start mahjong from https://www.randomsaladgames.com/
@@ -48,6 +74,9 @@ def loadImages(data):
 # assist checks from https://www.nuget.org/packages/awesome-bootstrap-checkbox-aspnet-mvc/
 # green bg from http://xpgameplus.com/games/mahjongunlimited/index.html
 # square from https://shoplook.io/product-preview/138758
+# sunlight from https://pngtree.com/freepng/yellow-sunlight-beam-effect-light-png-photoshop_3563771.html
+# go from http://www.cndajin.com/group/go/
+# discard from http://iconsetc.com/icon/broccolidry_trash-bin/?style=simple-blue-gray
 # edited for size and transparent background
 def loadMisc(data):
     backFile = os.getcwd() + "/miscImages/back.png"
@@ -80,8 +109,16 @@ def loadMisc(data):
     data.greenBGPng = PhotoImage(file=greenBGFile)
     squareFile = os.getcwd() + "/miscImages/square.png"
     data.squarePng = PhotoImage(file=squareFile)
-
-
+    sunlightFile = os.getcwd() + "/miscImages/sunlight.png"
+    data.sunlightPng = PhotoImage(file=sunlightFile)
+    goFile = os.getcwd() + "/miscImages/go.png"
+    data.goPng = PhotoImage(file=goFile)
+    discardFile = os.getcwd() + "/miscImages/discard.png"
+    data.discardPng = PhotoImage(file=discardFile)
+    assistCheckBigFile = os.getcwd() + "/miscImages/assistCheckBig.png"
+    data.assistCheckBigPng = PhotoImage(file=assistCheckBigFile)
+    assistCheckedBigFile = os.getcwd() + "/miscImages/assistCheckedBig.png"
+    data.assistCheckedBigPng = PhotoImage(file=assistCheckedBigFile)
 
 # sets up the hands of each  player, randomly, drawing from the drawpile
 def initialHands(data):
@@ -108,27 +145,56 @@ def setPlayersCpu(data):
         data.cpus.append(type(data.L))
         data.cpus.append(type(data.T))
 
+#---------------------- Mouse Pressed Functions -------------------------- #
+
 def tilePressed(event, data):
+    curPlayer = data.turnOrder[data.turnInd]
     i = 0
     for tile in data.turnOrder[data.turnInd].tiles:
-        x1 = tile[0] - 15
-        y1 = tile[1] - 20
-        x2 = tile[0] + 15
-        y2 = tile[1] + 20
+        if data.turnInd == 0 or data.turnInd == 2: # vertical tile ranges
+            x1 = tile[0] - 15
+            y1 = tile[1] - 20
+            x2 = tile[0] + 15
+            y2 = tile[1] + 20
+        elif data.turnInd == 1 or data.turnInd == 3: # horizontal tile ranges
+            x1 = tile[0] - 20
+            y1 = tile[1] - 15
+            x2 = tile[0] + 20
+            y2 = tile[1] + 15
         if x1 <= event.x <= x2 and y1 <= event.y <= y2:
-            curPlayer = data.turnOrder[data.turnInd]
-            # unhighlight the previous highlighted tile
-            if curPlayer.highlighted != None:
-                curPlayer.tiles[curPlayer.highlighted][1] += 20
-            # highlight currently clicked tile
-            curPlayer.tiles[i][1] -= 20
+            # highlight clicked tile
+            # bottom or top
+            if data.turnInd == 0 or data.turnInd == 2:
+                curPlayer.tiles[i][1] -= 20
+            # right
+            elif data.turnInd == 1:
+                curPlayer.tiles[i][0] -= 20
+            # left
+            elif data.turnInd == 3:
+                curPlayer.tiles[i][0] += 20
+            # unhighlight currently clicked tile
+            if curPlayer.highlighted !=  None:
+                # bottom or top
+                if data.turnInd == 0 or data.turnInd == 2:
+                    curPlayer.tiles[curPlayer.highlighted][1] += 20
+                # right
+                if data.turnInd == 1:
+                    curPlayer.tiles[curPlayer.highlighted][0] += 20
+                # left
+                if data.turnInd == 3:
+                    curPlayer.tiles[curPlayer.highlighted][0] -= 20
+            if data.showHeuristics == True:
+                curL = copy.copy(curPlayer.tileNames)
+                removedTile = curPlayer.tiles[i][2][1]
+                curL.remove(removedTile)
+                print(logic.handHeuristic(data, curL, removedTile), "heuristic value of tile")
             curPlayer.highlighted = i
-        i += 1
+        i += 1 # try if another tile was clicked
 
 # discards highlighted tile if you click on the discard button, changes turn, next draws
 def discardPressed(event, data):
-    if data.width / 2 - 260 <= event.x < data.width / 2 - 20  and \
-    2 * data.height / 3 + 80 <= event.y <= 2 * data.height / 3 + 135:
+    if data.width / 2 - 255 <= event.x < data.width / 2 - 185  and \
+    data.height / 2 + 195 <= event.y <= data.height / 2 + 265:
         data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
         # pause if you're not a cpu (and you're not the only player in the game)
@@ -137,7 +203,6 @@ def discardPressed(event, data):
             data.paused = True
             return "discarded and paused"
         return "just discarded"
-
 
 # changes turn checks for a win, adds tile
 def nextTurn(data):
@@ -154,7 +219,10 @@ def nextTurn(data):
         winningHandNames = []
         for tile in data.winningHand:
             winningHandNames.append(tile[2][1])
-        data.handSco = logic.handScore(winningHandNames)
+        data.handSco = logic.handScore(data, winningHandNames)
+        data.handSco[0] += 1
+        data.handSco[1] += "Self-picked last tile +1\n"
+        data.loser = "Self-pick!"
         print("Hand Score: " + str(data.handSco[0]))
         print(winningHandNames)
         data.mode = "win"
@@ -166,12 +234,12 @@ def drawDiscard(canvas, data):
     i = 0 # tracks pX up to 11 tiles in row
     j = 0 # tracks pY, increments only when row is completed
     for piece in data.discPile:
-        pX = 185 + 45 * i
+        pX = 170 + 45 * i
         pY = 175 + 55 * j
         threeDTile(canvas, pX, pY)
         canvas.create_image(pX, pY , image=piece[2][0])
         i += 1
-        if i == 10:
+        if i == 11:
              i = 0
              j += 1
 
@@ -185,10 +253,11 @@ def threeDTile(canvas, pX, pY):
 
 # makes a discard button
 def discardButton(canvas, data):
-    canvas.create_rectangle(data.width / 2 - 260, 2 * data.height / 3 + 80, \
-        data.width / 2 - 20, 2 * data.height / 3 + 135, fill = "pink")
-    canvas.create_text(data.width / 2 - 140, 2 * data.height / 3 + 105, text="Discard chosen tile", \
-        font = "Arial 25", fill = "Gray")
+    #canvas.create_rectangle(data.width / 2 - 255, data.height / 2 + 195, \
+    #data.width / 2 - 185, data.height / 2 + 265, fill = "pink")
+    canvas.create_image(data.width / 2 - 220, data.height / 2 + 230, image = data.discardPng)
+
+#---------------------- Pong Mode -------------------------- #
 
 # draw pong
 def pongRedrawAll(canvas, data):
@@ -252,6 +321,8 @@ def pongMousePressed(event, data):
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         data.mode = "play"
 
+#---------------------- Chow Mode -------------------------- #
+
 # draw chow
 def chowRedrawAll(canvas, data):
     # background box
@@ -313,17 +384,27 @@ def chowMousePressed(event, data):
     and 6.8 * data.height / 10 <= event.y <= 7.1 * data.height / 10:
         data.mode = "play"
 
+#---------------------- Win Mode -------------------------- #
+
+# returns to start if you click in box
+def winMousePressed(event, data):
+    if data.width / 2 - 200 <= event.x <= data.width / 2 + 200 and\
+    data.height / 2 - 200 <= event.y <= data.height / 2 + 200:
+        data.mode = "toStart"
+
 # victory message
 def winRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 2 - 200, data.height / 2 - 200, \
         data.width / 2 + 200, data.height / 2 + 200, fill = "pink")
     canvas.create_text(data.width / 2, data.height / 2 - 180, \
-        text= "The " + data.winner + " player won!", font = "Arial 25")
+        text= "The " + data.winner + " player won!" + data.loser, font = "Arial 25")
     canvas.create_text(data.width / 2, data.height / 2 - 150, \
         text= "Hand score: " + str(data.handSco[0]), font = "Arial 25", fill = "violet red")
-    canvas.create_text(data.width / 2, data.height / 2 - 90, \
+    canvas.create_text(data.width / 2, data.height / 2 - 105, \
         text= data.handSco[1], font = "Arial 20", fill = "coral")
     canvas.create_text(data.width / 2, data.height / 2, text= "The winning hand:", font = "Arial 25")
+    canvas.create_text(data.width / 2, data.height / 2 + 192, \
+        text= "Click in the box to return to the start screen.", font = "Arial 12")
     # display the winning hand
     i = 0
     j = 0
@@ -337,19 +418,64 @@ def winRedrawAll(canvas, data):
             j += 1
             i = 0
 
-def pauseMousePressed(event, data):
-    if data.width / 3 <= event.x <= 2 * data.width / 3 and \
-    5.7 * data.height / 10 <= event.y <= 7.2 * data.height / 10:
-        print("pause pressed")
-        data.mode = "play"
+#---------------------- Pause Mode -------------------------- #
 
+def pauseMousePressed(event, data):
+    if data.width / 3 - 70 <= event.x <= 2 * data.width / 3 + 70 and \
+    6 * data.height / 10 <= event.y <= 6.6 * data.height / 10:
+        data.mode = "play"
 
 # draw pause screen
 def pauseRedrawAll(canvas, data):
     # background box
-    canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
-        2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
+    canvas.create_rectangle(data.width / 3 - 70, 6.6 * data.height / 10, \
+        2 * data.width / 3 + 70, 6 * data.height / 10, fill = "pink")
     # pong option text
-    texty = "Click this box to continue"
+    texty = "Click this box and once more to continue"
     canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 22", \
         fill = "Gray")
+
+#---------------------- Drawn Mode -------------------------- #
+
+def drawnMousePressed(event, data):
+    if data.width / 3 - 100 <= event.x <= 2 * data.width / 3  + 90 and \
+    6 * data.height / 10 <= event.y <= 7 * data.height / 10:
+        data.mode = "toStart"
+
+# draw drawn screen
+def drawnRedrawAll(canvas, data):
+    # background box
+    canvas.create_rectangle(data.width / 3 - 100, 7 * data.height / 10, \
+        2 * data.width / 3 + 90, 6 * data.height / 10, fill = "pink")
+    # pong option text
+    texty = "Game drawn. There are no tiles left.\nClick in the box to return to the start screen."
+    canvas.create_text(data.width / 2, 6.4 * data.height / 10, text=texty, font = "Arial 22", \
+        fill = "Gray")
+
+#---------------------- Moving Mode -------------------------- #
+
+# draws the tile moving
+def movingTile(canvas, data):
+    threeDTile(canvas, data.curRemoved[0], data.curRemoved[1])
+    canvas.create_image(data.curRemoved[0], data.curRemoved[1], image = data.curRemoved[2][0])
+
+def movingTimerFired(data):
+    data.curRemoved[0] += data.widthIncr
+    data.curRemoved[1] += data.heightIncr
+    # if the tile is close enough to the center, stop moving
+    if abs(data.curRemoved[0] - data.width / 2)  <= 1 \
+    or abs(data.curRemoved[1] - data.height / 2) <= 1:
+        data.mode = "play"
+        hand = data.turnOrder[(data.turnInd-1) % 4] # subtract as pressing discarded incremented turn
+        hand.discardTileAfterAni(data, hand.handOrder(data), data.curRemoved)
+
+# draws go
+def drawGo(canvas, data):
+    if data.turnInd == 0: # bottom
+        canvas.create_image(data.width / 2, 11 * data.height / 12, image = data.goPng)
+    elif data.turnInd == 1: # right
+        canvas.create_image(9.3 * data.width / 10, data.height / 2, image = data.goPng)
+    elif data.turnInd == 2: # top
+        canvas.create_image(data.width / 2, 1 * data.height / 12, image = data.goPng)
+    elif data.turnInd == 3: # left
+        canvas.create_image(0.8 * data.width / 10, data.height / 2, image = data.goPng)

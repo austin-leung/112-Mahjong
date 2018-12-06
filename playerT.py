@@ -1,3 +1,5 @@
+# playerT.py contains methods for the top player specifically
+
 import player
 import random
 import graphicsFunc
@@ -57,7 +59,7 @@ class PlayerT(player.Player):
 		for piece in self.tiles:
 			pX = piece[0]
 			pY = piece[1]
-			if data.mode == "win":
+			if data.mode == "win" or data.showTiles:
 				# show the tile if it's a win
 				graphicsFunc.threeDTile(canvas, pX, pY)
 				img = piece[2][0]
@@ -81,7 +83,7 @@ class PlayerT(player.Player):
 	def drawMelds(self, canvas, data):
 		i = 0
 		for piece in self.melds:
-			pX = 75 + 45 * i
+			pX = 80 + 45 * i
 			pY = 35
 			graphicsFunc.threeDTile(canvas, pX, pY)
 			canvas.create_image(pX, pY, image=piece[2][0])

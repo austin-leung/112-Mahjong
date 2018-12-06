@@ -1,3 +1,5 @@
+# __init__.py is the main file where everything is run from
+
 from tkinter import *
 import os
 import random
@@ -9,8 +11,8 @@ import playerT
 import playerB
 import playerR
 import graphicsFunc
-import cpu
 import assist
+
 random.seed(11)
 # ---------------------- Control Center ------------------------- #
 # Mode structure from course notes
@@ -21,6 +23,10 @@ def init(data):
     data.images = []
     data.imageNames = []
     data.imageDict = {}
+    data.imagesL = []
+    data.imagesR = []
+    data.imageDictL = {}
+    data.imageDictR = {}
     data.drawPile = [] 
     data.discPile = []
     data.B = playerB.PlayerB()
@@ -30,6 +36,8 @@ def init(data):
     data.turnOrder = [data.B, data.R, data.T, data.L]
     data.turnInd = random.randint(0, 3)
     graphicsFunc.loadImages(data)
+    graphicsFunc.loadImagesL(data)
+    graphicsFunc.loadImagesR(data)
     graphicsFunc.loadSeaFlow(data)
     graphicsFunc.initialHands(data)
     graphicsFunc.loadMisc(data)
@@ -45,7 +53,12 @@ def init(data):
     data.numPlayers = 1
     data.paused = False
     data.meldsFirst = False
-
+    data.widthIncr = 0
+    data.heightIncr = 0
+    data.loser = ""
+    data.showHeuristics = False
+    data.hardAI = False
+    data.showTiles = False
 
 def mousePressed(event, data):
     if data.mode == "start":
@@ -62,40 +75,46 @@ def mousePressed(event, data):
         480 <= event.y <= 560:
             data.numPlayers += 1
             if data.numPlayers > 4: data.numPlayers = 4
+        if data.width / 2 - 60 <= event.x <= data.width / 2 + 60 and\
+        data.height / 2 + 200 <= event.y <= data.height / 2 + 320:
+            data.hardAI = not data.hardAI
+        if data.width / 2 + 150 <= event.x <= data.width / 2 + 270 and\
+        data.height / 2 + 200 <= event.y <= data.height / 2 + 320:
+            data.meldsFirst = not data.meldsFirst
     elif data.mode == "play": playMousePressed(event, data)
     elif data.mode == "pong": graphicsFunc.pongMousePressed(event, data)
     elif data.mode == "chow": graphicsFunc.chowMousePressed(event, data)
-    elif data.mode == "pause": pauseMousePressed(event, data)
+    elif data.mode == "pause": graphicsFunc.pauseMousePressed(event, data)
+    elif data.mode == "drawn": graphicsFunc.drawnMousePressed(event, data)
+    elif data.mode == "win": graphicsFunc.winMousePressed(event, data)
+    if data.mode == "toStart": # back to start mode
+        init(data)
 
 def keyPressed(event, data):
     if event.keysym == "p": # play with full control, all tiles revealed 
         data.mode = "play"
-    if event.keysym == "q": # for testing
+    elif event.keysym == "q": # for testing
         data.mode = "win"
-    if event.keysym == "r": # for resetting
+    elif event.keysym == "r": # for resetting
         init(data)
-    if event.keysym == "1": # for testing
-        for hand in data.turnOrder:
-            print(hand.name)
-            print(hand.tiles, "tiles")
-            print(hand.melds, "melds")
-    if event.keysym == "s": # toggle sort method
+    elif event.keysym == "s": # toggle sort method
         data.meldsFirst = not data.meldsFirst
-        print("Sort by melds first? " + data.meldsFirst)
-    if data.mode == "start":
-        if event.keysym == "c":
-            data.cpu = True
-            print("Currently in Cpu mode")
-            data.cpus.append(type(data.R))
-            data.cpus.append(type(data.L))
-            data.cpus.append(type(data.T))
-            data.mode = "play"
+        print("Sort by melds first? " + str(data.meldsFirst))
+    elif event.keysym == "h": # toggle printing heuristics
+        data.showHeuristics = not data.showHeuristics
+        print("Print out heuristics? " + str(data.showHeuristics))
+    elif event.keysym == "a": # toggle printing heuristics
+        data.hardAI = not data.hardAI
+        print("Is the AI difficulty on hard? " + str(data.hardAI))
+    if event.keysym == "d": # shows all tiles to debug
+        data.showTiles = not data.showTiles
+        print("Showing all tiles? " + str(data.showTiles))
     if data.mode == "play": 
         playKeyPressed(event, data)
 
-
 def timerFired(data):
     if data.mode == "play": playTimerFired(data)
+    elif data.mode == "moving": graphicsFunc.movingTimerFired(data)
 
 def redrawAll(canvas, data):
     if data.mode == "start":
@@ -112,13 +131,24 @@ def redrawAll(canvas, data):
             canvas.create_image(data.width / 2 + 100, 520, image = data.start3Png)
         elif data.numPlayers == 4:
             canvas.create_image(data.width / 2 + 100, 520, image = data.start4Png)
+        if data.hardAI == False:
+            canvas.create_image(data.width / 2, data.height / 2 + 260, image = data.assistCheckBigPng)
+            canvas.create_text(data.width / 2, data.height / 2 + 300, text = "Easy AI", font="Sans 18", \
+            fill = "white")
+        elif data.hardAI == True:
+            canvas.create_image(data.width / 2, data.height / 2 + 260, image = data.assistCheckedBigPng)
+            canvas.create_text(data.width / 2, data.height / 2 + 300, text = "Hard AI", font="Sans 18", \
+            fill = "white")
+        if data.meldsFirst == False:
+            canvas.create_image(data.width / 2 + 210, data.height / 2 + 260, image = data.assistCheckBigPng)
+            canvas.create_text(data.width / 2 + 210, data.height / 2 + 300, text = "Sort by type", font="Sans 18", \
+            fill = "white")
+        elif data.meldsFirst == True:
+            canvas.create_image(data.width / 2 + 210, data.height / 2 + 260, image = data.assistCheckedBigPng)
+            canvas.create_text(data.width / 2 + 210, data.height / 2 + 300, text = "Sort melds first", font="Sans 14", \
+            fill = "white")
+    
         """
-        canvas.create_text(data.width / 2, data.height / 2 + 20, \
-            text="Press 'c' to play against three cpu", font = "Arial 25")
-        canvas.create_text(data.width / 2, data.height / 2 + 100, font = "Arial 25",\
-            text= "Press 'p' to play with revealed hands +")
-        canvas.create_text(data.width / 2, data.height / 2 + 130, font = "Arial 25", \
-            text= "full control over all players (testing/debugging)")
         canvas.create_text(data.width / 2, data.height / 2 + 180, font = "Arial 25", \
             text= "Press 'r' at any point to return to the start screen")
         canvas.create_text(data.width / 2, data.height / 2 + 230, font = "Arial 25", \
@@ -138,26 +168,35 @@ def redrawAll(canvas, data):
     elif data.mode == "win":
         playRedrawAll(canvas, data)
         graphicsFunc.winRedrawAll(canvas, data)
-
+    elif data.mode == "drawn":
+        playRedrawAll(canvas, data)
+        graphicsFunc.drawnRedrawAll(canvas, data)
+    elif data. mode == "moving":
+        playRedrawAll(canvas, data)
+        graphicsFunc.movingTile(canvas, data)
 
 #---------------------- Play Mode -------------------------- #
-
 
 def playMousePressed(event, data):
     if assist.assistModePressed(event, data) != None:
         return # don't go to next turn, etc. if you click on the assist mode check
+    if data.assistMode == True:
+        data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
+    if data.turnOrder[data.turnInd].name == "Left":
+        print(data.turnOrder[data.turnInd].tiles)
     # skip right to nextTurn(data) if you were waiting to continue turn
     if data.paused == False:
         cpuTurn = type(data.turnOrder[data.turnInd]) in data.cpus # if it's a cpu's turn
         if cpuTurn:
-            # have cpu choose a tile among non-melded tiles
-            cpuTiles = copy.copy(data.turnOrder[data.turnInd].tileNames)
-            meldTiles = logic.longestCombo(cpuTiles)
-            for tile in meldTiles:
-                cpuTiles.remove(tile)
-            # cpuTiles should only have tiles not already in a meld left
-            chosenTileName = random.choice(cpuTiles)
-            chosenTile = random.choice(data.turnOrder[data.turnInd].tiles) # just in case
+            if data.hardAI == False:
+                # AI: have cpu choose a tile among non-melded tiles 
+                bestTiles = logic.discAIEasy(data)
+                # bestTiles should only have tiles not already in a meld left
+            elif data.hardAI == True:
+                # AI: have cpu choose a tile to discard among equally high heuristic value hand outcomes 
+                bestTiles = logic.discAI(data)
+            chosenTileName = random.choice(bestTiles)
+            chosenTile = None 
             for tile in data.turnOrder[data.turnInd].tiles:
                 if chosenTileName == tile[2][1]:
                     chosenTile = tile
@@ -165,10 +204,10 @@ def playMousePressed(event, data):
             event.y = chosenTile[1]
         # highlights tile if pressed
         graphicsFunc.tilePressed(event, data)
-        if cpuTurn:
+        if cpuTurn: 
             # make event.x and event.y "press" the discard button
-            event.x = data.width / 2 - 100
-            event.y = 2 * data.height / 3 + 100
+            event.x = data.width / 2 - 200
+            event.y = data.height / 2 + 200
         # can't discard if you have no tile highlighted
         if data.turnOrder[data.turnInd].highlighted == None:
             return 
@@ -178,13 +217,19 @@ def playMousePressed(event, data):
                 return
             graphicsFunc.nextTurn(data) # change turn and add tile
             data.paused = False
+            if data.assistMode == True:
+                data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
             if len(data.drawPile) == 0:
-                print("game over no one wins") # temp
+                data.mode = "drawn"
+                print("Game over no one wins.") # temp
     else: # after you've come back from pausing
         graphicsFunc.nextTurn(data) # change turn and add tile
         data.paused = False
+        if data.assistMode == True:
+            data.turnOrder[data.turnInd].recTiles = logic.discAI(data)
         if len(data.drawPile) == 0:
-            print("game over no one wins") # temp
+            data.mode = "drawn"
+            print("Game over, no one wins.") # temp
 
 def playKeyPressed(event,data):
     pass
@@ -195,13 +240,15 @@ def playTimerFired(data):
 def playRedrawAll(canvas, data):
     # draw background
     canvas.create_image(data.width / 2, data.height / 2, image = data.greenBGPng)
-    canvas.create_image(393, 375, image = data.squarePng)
-    #canvas.create_rectangle(160, 140, data.width - 165, data.height - 155, fill="green", width = 2) 
-    # assist check
-    if data.assistMode == False:
-        canvas.create_image(data.width - 25, data.height - 25, image = data.assistCheckPng)
-    elif data.assistMode == True:
-        canvas.create_image(data.width - 25, data.height - 25, image = data.assistCheckedPng)
+    canvas.create_rectangle(data.width / 2 - 265, data.height / 2 - 265,\
+        data.width / 2 + 260, data.height / 2 + 193, width = 1)
+    canvas.create_image(data.width / 2, data.height / 2 - 250, image = data.sunlightPng)
+    graphicsFunc.drawGo(canvas, data)
+    # only show the winning tiles if not cpu
+    if data.assistMode == True and type(data.turnOrder[data.turnInd]) not in data.cpus:
+        assist.drawWinningTiles(data, canvas)
+        assist.drawRecommendedTiles(data, canvas)
+    assist.drawCheck(canvas, data)
     # discard button
     graphicsFunc.discardButton(canvas, data)
     # draw tiles
@@ -211,17 +258,11 @@ def playRedrawAll(canvas, data):
     # draw discard pile
     graphicsFunc.drawDiscard(canvas, data)
     # draw remaining draw tile count
-    canvas.create_text(data.width / 2, 2 * data.height / 3, text= "Tiles Left: " + \
-        str(len(data.drawPile)), font = "Arial 20")
-    # draw text indicating whose turn it is
-    canvas.create_text(data.width / 2, 2 * data.height / 3 + 40, \
-        text="Current Turn: " + data.turnOrder[data.turnInd].name, font = "Arial 20")
+    canvas.create_text(data.width / 2 - 80, 2 * data.height / 3 + 125, text= "Tiles Left: " + \
+        str(len(data.drawPile)), font = "Arial 15", fill = "light goldenrod")
     if data.cpu == True:
-        canvas.create_text(data.width / 2, 2 * data.height / 3 + 60, \
-            text="Click anywhere for the computer to make a move.", font = "Arial 20")
-    # only show the winning tiles if not cpu
-    if data.assistMode == True and type(data.turnOrder[data.turnInd]) not in data.cpus:
-        assist.drawWinningTiles(data, canvas)
+        canvas.create_text(data.width / 2 - 80, 2 * data.height / 3 + 88, \
+            text="Click\nanywhere for\na cpu move.", font = "Arial 15", fill = "gold2")
 
 def pauseMousePressed(event, data):
     if data.width / 3 <= event.x <= 2 * data.width / 3 and \

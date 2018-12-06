@@ -1,12 +1,22 @@
 # assist.py contains functions for assist mode
+
 import copy
 import logic
 
 # toggles assist mode when the button is pressed
 def assistModePressed(event, data):
-	if data.width - 50 <= event.x and data.height - 50 <= event.y:
+	if data.width / 2 - 185 <= event.x  <= data.width / 2 - 125 \
+	and data.height / 2 + 200 <= event.y <= data.height / 2 + 260:
 		data.assistMode = not data.assistMode
 		return "toggled"
+
+def drawCheck(canvas, data):
+	if data.assistMode == False:
+		canvas.create_image(data.width / 2 - 155, data.height / 2 + 230, image = data.assistCheckPng)
+	elif data.assistMode == True:
+		canvas.create_image(data.width / 2 - 155, data.height / 2 + 230, image = data.assistCheckedPng)
+	canvas.create_text(data.width / 2 - 155, data.height / 2 + 250, text = "Assist", font="Sans 12", \
+		fill = "white")
 
 # sorts tiles
 def sortTiles(data, hand):
@@ -90,14 +100,14 @@ def sortTilesMeld(data, hand):
 # draws background box and winning tiles
 def drawWinningTiles(data, canvas):
 	winningTiles = data.turnOrder[data.turnInd].winningTiles
-	canvas.create_rectangle(data.width / 2 + 20, 2 * data.height / 3 + 80, \
+	canvas.create_rectangle(data.width / 2 + 105, 2 * data.height / 3 + 65, \
     data.width / 2 + 260, 2 * data.height / 3 + 135, fill = "pink")
-	canvas.create_text(data.width / 2 + 60, 2 * data.height / 3 + 105, text = "Wins:", \
-		font = "Arial 20", fill = "gray")
+	canvas.create_text(data.width / 2 + 185, 2 * data.height / 3 + 75, text = "Winning Tiles:", \
+		font = "Arial 12", fill = "gray35")
 	i = 0
 	for tile in winningTiles:
 		winTileImg = data.imageDict[tile]
-		pX = data.width / 2 + 110 + 45 * i
+		pX = data.width / 2 + 130 + 45 * i
 		pY = 2 * data.height / 3 + 110
 		threeDTile(canvas, pX, pY)
 		canvas.create_image(pX, pY , image=winTileImg )
@@ -110,4 +120,18 @@ def threeDTile(canvas, pX, pY):
     canvas.create_rectangle(pX - 15, pY - 24, pX + 19, pY + 20,  fill ="white", width = 0)
     canvas.create_rectangle(pX - 16, pY - 23, pX + 18, pY + 21,  fill ="white", width = 0)
     canvas.create_rectangle(pX - 17, pY - 22, pX + 17, pY + 22,  fill ="white", width = 0)
-	
+
+def drawRecommendedTiles(data, canvas):
+	recTiles = data.turnOrder[data.turnInd].recTiles
+	canvas.create_rectangle(data.width / 2 - 25, 2 * data.height / 3 + 65, \
+    data.width / 2 + 100, 2 * data.height / 3 + 135, fill = "pink")
+	canvas.create_text(data.width / 2 + 40, 2 * data.height / 3 + 75, text = "Suggested Discards:", \
+		font = "Arial 12", fill = "gray35")
+	i = 0
+	for tile in recTiles:
+		recTileImg = data.imageDict[tile]
+		pX = data.width / 2 + 10 + 45 * i
+		pY = 2 * data.height / 3 + 110
+		threeDTile(canvas, pX, pY)
+		canvas.create_image(pX, pY , image=recTileImg )
+		i += 1

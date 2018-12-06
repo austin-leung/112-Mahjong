@@ -1,4 +1,4 @@
-# logic.py containsb methods evaluating whether melds are legal as well as the score of hands
+# logic.py contains methods evaluating melds, legality, finding combos
 
 # returns if a list of three tiles is a Pong
 def isPong(lst):
@@ -6,15 +6,6 @@ def isPong(lst):
 		return False
 	# all elements must be the same 
 	elif lst[0] == lst[1] and lst[1] == lst[2]: 
-		return True
-	return False
-
-# returns if a list of four tiles is a Pong
-def isKong(lst):
-	if len(lst) != 4: # kong is 4 elements
-		return False
-	# all elements must be the same 
-	elif lst[0] == lst[1] and lst[1] == lst[2] and lst[2] == lst[3]: 
 		return True
 	return False
 
@@ -73,18 +64,6 @@ def powerset(tileLst):
             allSubsets += [subset]
             allSubsets += [[tileLst[0]] + subset]
         return allSubsets
-
-# adapted powerset returning sets of length 3 and 4
-def threeFourPowerset(tileLst):
- 	psets = powerset(tileLst)
- 	threeLst = []
- 	fourLst = []
- 	for lst in psets:
- 		if len(lst) == 3:
- 			threeLst.append(lst)
- 		if len(lst) == 4:
- 			fourLst.append(lst)
- 	return [threeLst, fourLst]
 
  # adapted powerset returning sets of length 3
 def threePowerset(tileLst):
@@ -149,9 +128,20 @@ def winningTiles(imageNames, hand):
 	return winningTiles
 
 # takes list of tile names (should be hand and meld) and returns score of the hand
-def handScore(tileLst):
+def handScore(data, tileLst):
 	scoreText = ""
-	handCombo = longestComboScore(tileLst)
+	copyLst = copy.copy(tileLst)
+	handCombo = longestComboScore(copyLst)
+	longComboLen = len(handCombo[0])
+	pts = 0
+	flowSea = 0
+	for tile in tileLst:
+		if tile[0] == "f" or tile[0] == "s":
+			if int(tile[1]) == data.turnInd + 1: # flowers and season start at 1 not 0
+				flowSea += 1
+	if flowSea >= 1:
+		scoreText += str(flowSea) + "Flower/Season(s) of Own Wind +" + str(flowSea) + "\n"
+		pts += flowSea
 	dragons = 0
 	winds = 0
 	# count winds and dragons
@@ -169,7 +159,6 @@ def handScore(tileLst):
 		winds += 1
 	if handCombo[0].count("wsouth.png") >= 3:
 		winds += 1
-	pts = 0
 	if handCombo[1] == True and handCombo[2] == False: # 3 pts for all pong
 		pts += 3
 		scoreText += "All Pong +3\n"
@@ -206,8 +195,7 @@ def handScore(tileLst):
 	if dragons > 0:
 		pts += dragons
 		scoreText += str(dragons) + " Dragon(s) +" + str(dragons) + "\n"
-	print(scoreText)
-	return [pts, scoreText]
+	return [pts, scoreText, longComboLen]
 
 
 # recursion to find the longest possible combo from tileLst
@@ -223,8 +211,6 @@ def longestComboScore(tileLst, winCombo = None, curLongCombo = None, anyPong = F
 			if tile[0] == "f" or tile[0] == "s":
 				copyL.remove(tile)
 		tileLst = copyL
-	#print(winCombo, "w")
-	#print(curLongCombo)
 	# final combo should always be a winning pair, not a meld
 	if len(tileLst) == 2 and tileLst[0] == tileLst[1]:
 		return (curLongCombo, anyPong, anyChow, anyBamboo, anyDot, anyCharacter)
@@ -294,33 +280,60 @@ def longestComboScore(tileLst, winCombo = None, curLongCombo = None, anyPong = F
 					anyCharacter = tmp[5]
 	return (curLongCombo, anyPong, anyChow, anyBamboo, anyDot, anyCharacter)
 
-L = ['f4.png', 's1.png', '2dot.png', '3dot.png', '4dot.png', '8dot.png', '6dot.png', '7dot.png', '6dot.png', '4dot.png', '5dot.png', '7dot.png', '7dot.png', 'dgreen.png', 'dgreen.png', 'dgreen.png']
-#print(longestComboScore(L), "LCS")
-#print(handScore(L))
+# returns a heuristic value based on potential winning hand score 
+# and how close you are to attaining that hand score
+# tileLst is the names of both the tiles in hand and melds
+# hand loses value if the removed tile is similar to other tiles
+def handHeuristic(data, tileLst, removedTile):
+	copyLst = copy.copy(tileLst)
+	hs = handScore(data, copyLst)
+	pts = hs[0]
+	longComboLen = hs[2]
+	similarityRate = 1 # less is more similar
+	# if you needed one more tile to pong it
+	if tileLst.count(removedTile) >= 1:
+		similarityRate *= 0.5
+	if removedTile[0] in "123456789":
+		# if you needed one more tile to chow it
+		if str(int(removedTile[0]) + 1) + removedTile[1:] in tileLst\
+		or str(int(removedTile[0]) - 1) + removedTile[1:] in tileLst:
+			similarityRate *= 0.75
+		# if you needed one more tile to chow it but it's farther away
+		if str(int(removedTile[0]) + 2) + removedTile[1:] in tileLst\
+		or str(int(removedTile[0]) - 2) + removedTile[1:] in tileLst:
+			similarityRate *= 0.85
+	# add 1 because 0 "potential" hand can still get to above 0 in score  by self-pick
+	# multiply for tilesFromWin because it matters more than pts
+	heurVal = (pts + 1) * ((longComboLen + 1) * 2) * similarityRate
+	return heurVal
 
+# returns a list of a maximum of 2 tiles that are optimal based on handHeuristic()
+def discAI(data):
+    curL = copy.copy(data.turnOrder[data.turnInd].tileNames)
+    maxHeurVal = 0
+    maxHeurValInd = [0]
+    i = 0
+    for tile in data.turnOrder[data.turnInd].tileNames:
+        removedTile = tile
+        curL.remove(removedTile)
+        heurVal = handHeuristic(data, curL, removedTile)
+        curL.append(removedTile)
+        if heurVal > maxHeurVal:
+            maxHeurValInd = [i]
+            maxHeurVal = heurVal
+        # maximum of 2 recommendations
+        elif heurVal == maxHeurVal and len(maxHeurValInd) <= 1:
+        	maxHeurValInd.append(i)
+        i += 1
+    bestRemove = []
+    for ind in maxHeurValInd:
+    	bestRemove.append(data.turnOrder[data.turnInd].tileNames[ind])
+    return bestRemove
 
-# testing / debugging
-L = ['4dot.png', '9bamboo.png', '7bamboo.png', '4dot.png','8character.png','7character.png', \
-'9dot.png', '6character.png','8bamboo.png']
-#print(longestCombo(L))
-for item in longestCombo(L):
-	L.remove(item)
-#print(L)
-R = ['8character.png','9bamboo.png', '7bamboo.png', '8bamboo.png']
-#print(winningTiles(R))
-
-#print(threePowerset(["1bamboo", "4bamboo", "2bamboo", "1dot", "7dot","7dot", "7dot", "3bamboo", "7dot"]))
-testPongChow = ["3bamboo", "1bamboo", "2bamboo"]
-assert(isPong(testPongChow) == False)
-assert(isChow(testPongChow) == True)
-testPongChow2 = ["3dot", "3dot", "3dot"]
-assert(isPong(testPongChow2) == True)
-assert(isChow(testPongChow2) == False)
-testKong = ["3dot", "3dot", "3dot", "3dot"]
-assert(isKong(testKong) == True)
-testKong2 = ["3dot", "3dot", "3dot", "5dot"]
-assert(isKong(testKong2) == False)
-
-testMelds = ["1bamboo", "4bamboo", "2bamboo", "1dot", "7dot","7dot", "7dot", "3bamboo", "7dot"]
-#print(possibleMelds(testMelds))
-
+# cpuTiles is only a tile from those that are not melded
+def discAIEasy(data):
+	cpuTiles = copy.copy(data.turnOrder[data.turnInd].tileNames)
+	meldTiles = longestCombo(cpuTiles)
+	for tile in meldTiles:
+		cpuTiles.remove(tile)
+	return cpuTiles

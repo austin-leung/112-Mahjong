@@ -17,6 +17,7 @@ class Player(object):
 		self.tileNames = []
 		self.winningTiles = []
 		self.lastDrawnTileName = None
+		self.recTiles = []
 
 	# returns True if you can pong the tile that is thrown out
 	def canPong(self, data, discTile):
@@ -71,16 +72,28 @@ class Player(object):
 
 	# discards the chosen tile, checking for other hands' potentially using it for melds in order
 	def discardTile(self, data, handOrder):
-		if self.highlighted == None:
-			print("You can't discard if you didn't choose a tile!")
-			return
-		removed = self.tiles.pop(self.highlighted)
+		if data.mode != "moving":
+			if self.highlighted == None:
+				print("You can't discard if you didn't choose a tile!")
+				return
+			removed = self.tiles.pop(self.highlighted)
+			self.highlighted = None
+			data.curRemoved = removed
+			data.widthIncr = (data.width / 2 - data.curRemoved[0]) / 4
+			data.heightIncr = (data.height / 2 - data.curRemoved[1]) / 4
+			data.mode = "moving"
+
+	# continue after discarding tile and after the subsequent moving animation
+	def discardTileAfterAni(self, data, handOrder, removed):
 		self.discarded.append(removed)
 		data.discPile.append(removed)
 		self.tileNames.remove(removed[2][1])
-		self.highlighted = None
 		# update winning tiles everytime a tile is discarded
 		self.winningTiles = logic.winningTiles(data.imageNames, self)
+		meldsAndTiles = self.melds + self.tiles
+		meldsAndTilesNames = []
+		for tile in meldsAndTiles:
+			meldsAndTilesNames.append(tile[2][1])
 		# check if anyone can win with the tile
 		for hand in handOrder:
 			if removed[2][1] in hand.winningTiles:
@@ -88,13 +101,14 @@ class Player(object):
 				hand.tileNames.append(removed[2][1])
 				print("Won from someone else's tile!")
 				print("Loser: " + self.name)
+				data.loser = " " + self.name + " lost."
 				assist.sortTiles(data, self)
 				data.winner = hand.name
 				data.winningHand = hand.melds + hand.tiles
 				winningHandNames = []
 				for tile in data.winningHand:
 					winningHandNames.append(tile[2][1])
-				data.handSco = logic.handScore(winningHandNames)
+				data.handSco = logic.handScore(data, winningHandNames)
 				print("Hand Score: " + str(data.handSco[0]))
 				print(winningHandNames)
 				data.mode = "win"

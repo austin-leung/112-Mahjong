@@ -1,3 +1,5 @@
+# playerR.py contains methods for the right player specifically
+
 import player
 import random
 import graphicsFunc
@@ -57,17 +59,21 @@ class PlayerR(player.Player):
 		for piece in self.tiles:
 			pX = piece[0]
 			pY = piece[1]
-			if data.mode == "win":
+			if data.mode == "win" or data.showTiles:
 				# show the tile if it's a win
-				graphicsFunc.threeDTile(canvas, pX, pY)
-				img = piece[2][0]
+				canvas.create_image(pX + 3, pY - 4, image=data.backHPng)
+				self.threeDTile(canvas, pX + 1, pY - 2)
+				tileName = piece[2][1]
+				img = data.imageDictR[tileName]
 			# show back of tile if you're a cpu or it's not your turn
 			elif type(self) in data.cpus or type(data.turnOrder[data.turnInd]) != type(self):
 				self.threeDTile(canvas, pX, pY)
 				img = data.backHPng
 			else:
-				graphicsFunc.threeDTile(canvas, pX, pY)
-				img = piece[2][0]
+				canvas.create_image(pX + 3, pY - 4, image=data.backHPng)
+				self.threeDTile(canvas, pX + 1, pY - 2)
+				tileName = piece[2][1]
+				img = data.imageDictR[tileName]
 			canvas.create_image(pX, pY, image=img)
 
 	# creates 3d appearing mahjong piece horizontally
@@ -82,7 +88,10 @@ class PlayerR(player.Player):
 		i = 0
 		for piece in self.melds:
 			pX = data.width - 35
-			pY = 90 + 55 * i
-			graphicsFunc.threeDTile(canvas, pX, pY)
-			canvas.create_image(pX, pY, image=piece[2][0])
+			pY = 720 - 40 * i
+			canvas.create_image(pX + 3, pY - 4, image=data.backHPng)
+			self.threeDTile(canvas, pX + 1, pY - 2)
+			tileName = piece[2][1]
+			img = data.imageDictR[tileName]
+			canvas.create_image(pX, pY, image=img)
 			i += 1
