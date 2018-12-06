@@ -94,7 +94,8 @@ class Player(object):
 				winningHandNames = []
 				for tile in data.winningHand:
 					winningHandNames.append(tile[2][1])
-				print("Hand Score: " + str(logic.handScore(winningHandNames)))
+				data.handSco = logic.handScore(winningHandNames)
+				print("Hand Score: " + str(data.handSco[0]))
 				print(winningHandNames)
 				data.mode = "win"
 				return

@@ -46,6 +46,8 @@ def loadImages(data):
 # start arrows from https://www.flaticon.com/free-icon/left-and-right-small-triangular-arrows-couple_37456
 # start numbers from https://cliparts.zone/cute-number-4-cliparts
 # assist checks from https://www.nuget.org/packages/awesome-bootstrap-checkbox-aspnet-mvc/
+# green bg from http://xpgameplus.com/games/mahjongunlimited/index.html
+# square from https://shoplook.io/product-preview/138758
 # edited for size and transparent background
 def loadMisc(data):
     backFile = os.getcwd() + "/miscImages/back.png"
@@ -74,7 +76,10 @@ def loadMisc(data):
     data.assistCheckPng = PhotoImage(file=assistCheckFile)
     assistCheckedFile = os.getcwd() + "/miscImages/assistChecked.png"
     data.assistCheckedPng = PhotoImage(file=assistCheckedFile)
-
+    greenBGFile = os.getcwd() + "/miscImages/greenBG.png"
+    data.greenBGPng = PhotoImage(file=greenBGFile)
+    squareFile = os.getcwd() + "/miscImages/square.png"
+    data.squarePng = PhotoImage(file=squareFile)
 
 
 
@@ -149,7 +154,8 @@ def nextTurn(data):
         winningHandNames = []
         for tile in data.winningHand:
             winningHandNames.append(tile[2][1])
-        print("Hand Score: " + str(logic.handScore(winningHandNames)))
+        data.handSco = logic.handScore(winningHandNames)
+        print("Hand Score: " + str(data.handSco[0]))
         print(winningHandNames)
         data.mode = "win"
     hand.reorganizeTiles(data)
@@ -311,8 +317,13 @@ def chowMousePressed(event, data):
 def winRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 2 - 200, data.height / 2 - 200, \
         data.width / 2 + 200, data.height / 2 + 200, fill = "pink")
-    canvas.create_text(data.width / 2, data.height / 2 - 100, text= data.winner + " WON!!!", font = "Arial 30")
-    canvas.create_text(data.width / 2, data.height / 2 - 50, text= "The winning hand:", font = "Arial 30")
+    canvas.create_text(data.width / 2, data.height / 2 - 180, \
+        text= "The " + data.winner + " player won!", font = "Arial 25")
+    canvas.create_text(data.width / 2, data.height / 2 - 150, \
+        text= "Hand score: " + str(data.handSco[0]), font = "Arial 25", fill = "violet red")
+    canvas.create_text(data.width / 2, data.height / 2 - 90, \
+        text= data.handSco[1], font = "Arial 20", fill = "coral")
+    canvas.create_text(data.width / 2, data.height / 2, text= "The winning hand:", font = "Arial 25")
     # display the winning hand
     i = 0
     j = 0

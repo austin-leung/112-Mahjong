@@ -39,6 +39,7 @@ def init(data):
     data.turnOrder[data.turnInd].addTile(data) # first player draws
     data.winningHand = data.turnOrder[data.turnInd].tiles + data.turnOrder[data.turnInd].melds
     data.winner = data.turnOrder[data.turnInd].name
+    data.handSco = ["rawr", "lol\nlolz\nlolo"]
     data.cpu = False
     data.cpus = [] 
     data.numPlayers = 1
@@ -193,8 +194,9 @@ def playTimerFired(data):
 
 def playRedrawAll(canvas, data):
     # draw background
-    canvas.create_rectangle(0, 0, data.width, data.height, fill="green") 
-    canvas.create_rectangle(160, 140, data.width - 165, data.height - 155, fill="green", width = 2) 
+    canvas.create_image(data.width / 2, data.height / 2, image = data.greenBGPng)
+    canvas.create_image(393, 375, image = data.squarePng)
+    #canvas.create_rectangle(160, 140, data.width - 165, data.height - 155, fill="green", width = 2) 
     # assist check
     if data.assistMode == False:
         canvas.create_image(data.width - 25, data.height - 25, image = data.assistCheckPng)

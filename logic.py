@@ -150,6 +150,7 @@ def winningTiles(imageNames, hand):
 
 # takes list of tile names (should be hand and meld) and returns score of the hand
 def handScore(tileLst):
+	scoreText = ""
 	handCombo = longestComboScore(tileLst)
 	dragons = 0
 	winds = 0
@@ -171,41 +172,42 @@ def handScore(tileLst):
 	pts = 0
 	if handCombo[1] == True and handCombo[2] == False: # 3 pts for all pong
 		pts += 3
-		print("All Pong +3")
+		scoreText += "All Pong +3\n"
 	if handCombo[1] == False and handCombo[2] == True: # 1 pt for all chow
 		pts += 1
-		print("All Chow + 1")
+		scoreText += "All Chow +1\n"
 	# all suit w/ honors is +3, all suits is +6
 	# all bamboo
 	if handCombo[3] == True and handCombo[4] == False and handCombo[5] == False:
 		pts += 3
-		print("All Bamboo w/ Honors +3")
+		scoreText += "All Bamboo w/ Honors +3\n"
 		if winds == 0 and dragons == 0:
 			pts += 3
-			print("All Bamboo +3")
+			scoreText += "All Bamboo +3\n"
 	# all dot
 	if handCombo[3] == False and handCombo[4] == True and handCombo[5] == False:
 		pts += 3
-		print("All Dot w/ Honors +3")
+		scoreText += "All Dot w/ Honors +3\n"
 		if winds == 0 and dragons == 0:
 			pts += 3
-			print("All Dot +3")
+			scoreText += "All Dot +3\n"
 	# all character
 	if handCombo[3] == False and handCombo[4] == False and handCombo[5] == True:
 		pts += 3
-		print("All Character w/ Honors +3")
+		scoreText += "All Character w/ Honors +3\n"
 		if winds == 0 and dragons == 0:
 			pts += 3
-			print("All Character +3")
+			scoreText += "All Character +3\n"
 	# point for each wind pong
 	if winds > 0: 
 		pts += winds
-		print(str(winds) + " Winds +" + str(winds))
+		scoreText += str(winds) + " Winds +" + str(winds) + "\n"
 	# point for each dragon pong
 	if dragons > 0:
 		pts += dragons
-		print(str(dragons) + " Dragon(s) +" + str(dragons))
-	return pts
+		scoreText += str(dragons) + " Dragon(s) +" + str(dragons) + "\n"
+	print(scoreText)
+	return [pts, scoreText]
 
 
 # recursion to find the longest possible combo from tileLst
@@ -215,7 +217,7 @@ def longestComboScore(tileLst, winCombo = None, curLongCombo = None, anyPong = F
 	if winCombo == None:
 		winCombo = []
 		curLongCombo = []
-		copyL = copy.copy(L)
+		copyL = copy.copy(tileLst)
 		# get rid of flowers and seasons
 		for tile in tileLst:
 			if tile[0] == "f" or tile[0] == "s":
