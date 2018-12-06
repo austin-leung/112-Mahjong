@@ -1,4 +1,4 @@
-# Player.py contains the object Player, with all the actions a player can do and their tiles
+# player.py contains the object Player, with all the actions a player can do and their tiles
 
 import random
 import logic
@@ -85,7 +85,6 @@ class Player(object):
 				data.mode = "moving"
 			else:
 				self.discardTileAfterAni(data, handOrder, data.curRemoved)
-				data.mode = "pause"
 
 	# continue after discarding tile and after the subsequent moving animation
 	def discardTileAfterAni(self, data, handOrder, removed):
@@ -128,7 +127,9 @@ class Player(object):
 				data.pongOptHand = hand
 				data.pongOptTile = removed
 				data.mode = "pong"
-			if hand.canChow(data, removed):
-				data.chowOptHand = hand
-				data.chowOptTile = removed
-				data.mode = "chow"
+		# chow only works for next person
+		hand = handOrder[0]
+		if hand.canChow(data, removed):
+			data.chowOptHand = hand
+			data.chowOptTile = removed
+			data.mode = "chow"

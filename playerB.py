@@ -6,7 +6,7 @@ import graphicsFunc
 import logic
 import copy
 import assist
-random.seed(11)
+
 class PlayerB(player.Player):
 
 	def __init__(self):

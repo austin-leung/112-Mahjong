@@ -197,6 +197,8 @@ def discardPressed(event, data):
     data.height / 2 + 195 <= event.y <= data.height / 2 + 265:
         data.turnOrder[data.turnInd].discardTile(data, data.turnOrder[data.turnInd].handOrder(data))
         data.turnOrder[data.turnInd].reorganizeTiles(data)
+        if data.mode == "chow" or data.mode == "pong":
+            return
         # pause if you're not a cpu (and you're not the only player in the game)
         if type(data.turnOrder[data.turnInd]) not in data.cpus and data.numPlayers != 1:
                 data.mode = "pause"
@@ -265,21 +267,28 @@ def pongRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
         2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
     # pong option text
-    texty = data.pongOptHand.name + " can pong "
-    canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 15", \
+    if type(data.pongOptHand) in data.cpus:
+        texty = data.pongOptHand.name + " (cpu) can pong "
+    else:
+        texty = data.pongOptHand.name + " can pong "
+    canvas.create_text(data.width / 2 - 10, 6.1 * data.height / 10, text=texty, font = "Arial 15", \
         fill = "Gray")
     threeDTile(canvas, data.width / 2 + 80, 6.3 * data.height / 10)
     canvas.create_image(data.width / 2 + 80, 6.3 * data.height / 10, image = data.pongOptTile[2][0])
-    # pong button
-    canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
-        data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
-    canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Pong!", font = "Arial 15", \
-        fill = "Gray")
-    # skip button
-    canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
-        2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
-    canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
-        fill = "Gray")
+    if type(data.pongOptHand) in data.cpus:
+        canvas.create_text(data.width / 2, 6.7 * data.height / 10, text="Click anywhere to continue.", \
+            font = "Arial 15", fill = "Gray")
+    else:
+        # pong button
+        canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
+            data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
+        canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Pong!", font = "Arial 15", \
+            fill = "Gray")
+        # skip button
+        canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
+            2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
+        canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
+            fill = "Gray")
 
 # key pressed pong
 def pongMousePressed(event, data):
@@ -331,21 +340,28 @@ def chowRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 3, 7.2 * data.height / 10, \
         2 * data.width / 3, 5.7 * data.height / 10, fill = "pink")
     # pong option text
-    texty = data.chowOptHand.name + " can chow "
-    canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 15", \
+    if type(data.chowOptHand) in data.cpus:
+        texty = data.chowOptHand.name + " (cpu) can chow "
+    else:
+        texty = data.chowOptHand.name + " can chow "
+    canvas.create_text(data.width / 2 - 10, 6.1 * data.height / 10, text=texty, font = "Arial 15", \
         fill = "Gray")
     threeDTile(canvas, data.width / 2 + 80, 6.3 * data.height / 10)
     canvas.create_image(data.width / 2 + 80, 6.3 * data.height / 10, image = data.chowOptTile[2][0])
-    # chow button
-    canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
-        data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
-    canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Chow!", font = "Arial 15", \
-        fill = "Gray")
-    # skip button
-    canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
-        2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
-    canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
-        fill = "Gray")
+    if type(data.chowOptHand) in data.cpus:
+        canvas.create_text(data.width / 2, 6.7 * data.height / 10, text="Click anywhere to continue.", \
+            font = "Arial 15", fill = "Gray")
+    else:
+        # chow button
+        canvas.create_rectangle(data.width / 3 + 40, 6.8 * data.height / 10, \
+            data.width / 3 + 90, 7.1 * data.height / 10, fill = "cyan")
+        canvas.create_text(data.width / 3 + 65, 6.95 * data.height / 10, text="Chow!", font = "Arial 15", \
+            fill = "Gray")
+        # skip button
+        canvas.create_rectangle(2 * data.width / 3 - 90, 6.8 * data.height / 10, \
+            2 * data.width / 3 - 40, 7.1 * data.height / 10, fill = "cyan")
+        canvas.create_text(2 * data.width / 3 - 65, 6.95 * data.height / 10, text="Skip", font = "Arial 15", \
+            fill = "Gray")
 
 # key pressed chow
 def chowMousePressed(event, data):
@@ -401,7 +417,7 @@ def winRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 2 - 200, data.height / 2 - 200, \
         data.width / 2 + 200, data.height / 2 + 200, fill = "pink")
     canvas.create_text(data.width / 2, data.height / 2 - 180, \
-        text= "The " + data.winner + " player won!" + data.loser, font = "Arial 25")
+        text= "The " + data.winner + " player won! " + data.loser, font = "Arial 25")
     canvas.create_text(data.width / 2, data.height / 2 - 150, \
         text= "Hand score: " + str(data.handSco[0]), font = "Arial 25", fill = "violet red")
     canvas.create_text(data.width / 2, data.height / 2 - 105, \
@@ -430,7 +446,7 @@ def pauseRedrawAll(canvas, data):
     canvas.create_rectangle(data.width / 3 - 70, 6.6 * data.height / 10, \
         2 * data.width / 3 + 70, 6 * data.height / 10, fill = "pink")
     # pong option text
-    texty = "Click this box and once more to continue"
+    texty = "Click this box to continue."
     canvas.create_text(data.width / 2, 6.3 * data.height / 10, text=texty, font = "Arial 22", \
         fill = "Gray")
 
@@ -468,8 +484,32 @@ def movingTimerFired(data):
         hand = data.turnOrder[(data.turnInd-1) % 4] # subtract as pressing discarded incremented turn
         hand.discardTileAfterAni(data, hand.handOrder(data), data.curRemoved)
 
-# draws go
+# draws go and adds player text
 def drawGo(canvas, data):
+    texty = ""
+    if type(data.turnOrder[0]) in data.cpus:
+        texty = "cpu"
+    else:
+        texty = "player"
+    canvas.create_text(data.width / 2, 11 * data.height / 12, text = texty, fill = "grey")
+    texty2 = ""
+    if type(data.turnOrder[1]) in data.cpus:
+        texty2 = "cpu"
+    else:
+        texty2 = "player"
+    canvas.create_text(9.3 * data.width / 10, data.height / 2, text = texty2, fill = "grey")
+    texty3 = ""
+    if type(data.turnOrder[2]) in data.cpus:
+        texty3 = "cpu"
+    else:
+        texty3 = "player"
+    canvas.create_text(data.width / 2, 1 * data.height / 12, text = texty3, fill = "grey")
+    texty4 = ""
+    if type(data.turnOrder[2]) in data.cpus:
+        texty4 = "cpu"
+    else:
+        texty4 = "player"
+    canvas.create_text(0.8 * data.width / 10, data.height / 2, text = texty4, fill = "grey")
     if data.turnInd == 0: # bottom
         canvas.create_image(data.width / 2, 11 * data.height / 12, image = data.goPng)
     elif data.turnInd == 1: # right

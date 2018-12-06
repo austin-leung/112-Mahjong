@@ -190,7 +190,7 @@ def handScore(data, tileLst):
 	# point for each wind pong
 	if winds > 0: 
 		pts += winds
-		scoreText += str(winds) + " Winds +" + str(winds) + "\n"
+		scoreText += str(winds) + " Wind(s) +" + str(winds) + "\n"
 	# point for each dragon pong
 	if dragons > 0:
 		pts += dragons

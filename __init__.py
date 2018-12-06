@@ -13,7 +13,6 @@ import playerR
 import graphicsFunc
 import assist
 
-random.seed(11)
 # ---------------------- Control Center ------------------------- #
 # Mode structure from course notes
 
