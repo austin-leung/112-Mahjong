@@ -54,7 +54,6 @@ class PlayerB(player.Player):
 				# sort normally
 				assist.sortTiles(data, self)
 
-
 	# draws tiles showing the images
 	def drawTiles(self, canvas,data):
 		for piece in self.tiles:

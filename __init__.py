@@ -46,7 +46,7 @@ def init(data):
     data.turnOrder[data.turnInd].addTile(data) # first player draws
     data.winningHand = data.turnOrder[data.turnInd].tiles + data.turnOrder[data.turnInd].melds
     data.winner = data.turnOrder[data.turnInd].name
-    data.handSco = ["rawr", "lol\nlolz\nlolo"]
+    data.handSco = ["[hand score here]", "Condition One +1\nCondition Two +3\nCondition Three +6"]
     data.cpu = False
     data.cpus = [] 
     data.numPlayers = 1
@@ -90,9 +90,7 @@ def mousePressed(event, data):
         init(data)
 
 def keyPressed(event, data):
-    if event.keysym == "p": # play with full control, all tiles revealed 
-        data.mode = "play"
-    elif event.keysym == "q": # for testing
+    if event.keysym == "q": # for testing
         data.mode = "win"
     elif event.keysym == "r": # for resetting
         init(data)
@@ -102,10 +100,10 @@ def keyPressed(event, data):
     elif event.keysym == "h": # toggle printing heuristics
         data.showHeuristics = not data.showHeuristics
         print("Print out heuristics? " + str(data.showHeuristics))
-    elif event.keysym == "a": # toggle printing heuristics
+    elif event.keysym == "a": # toggle AI difficulty
         data.hardAI = not data.hardAI
         print("Is the AI difficulty on hard? " + str(data.hardAI))
-    if event.keysym == "d": # shows all tiles to debug
+    elif event.keysym == "d": # shows all tiles to debug
         data.showTiles = not data.showTiles
         print("Showing all tiles? " + str(data.showTiles))
     if data.mode == "play": 
@@ -146,13 +144,6 @@ def redrawAll(canvas, data):
             canvas.create_image(data.width / 2 + 210, data.height / 2 + 260, image = data.assistCheckedBigPng)
             canvas.create_text(data.width / 2 + 210, data.height / 2 + 300, text = "Sort melds first", font="Sans 14", \
             fill = "white")
-    
-        """
-        canvas.create_text(data.width / 2, data.height / 2 + 180, font = "Arial 25", \
-            text= "Press 'r' at any point to return to the start screen")
-        canvas.create_text(data.width / 2, data.height / 2 + 230, font = "Arial 25", \
-            text= "Press 'q' to go to the winning hand screen (testing)")
-        """
     elif data.mode == "play": 
         playRedrawAll(canvas, data)
     elif data.mode == "pong": 

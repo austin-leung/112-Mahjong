@@ -213,7 +213,6 @@ def nextTurn(data):
         data.turnInd = 0
     hand = data.turnOrder[data.turnInd]
     hand.addTile(data)
-    #print(lastDrawnTile[2][0], lastDrawnTile[2][1], hand.winningTiles, hand.name)
     if hand.lastDrawnTileName in hand.winningTiles:
         print("Won from draw!")
         data.winner = hand.name
@@ -255,8 +254,6 @@ def threeDTile(canvas, pX, pY):
 
 # makes a discard button
 def discardButton(canvas, data):
-    #canvas.create_rectangle(data.width / 2 - 255, data.height / 2 + 195, \
-    #data.width / 2 - 185, data.height / 2 + 265, fill = "pink")
     canvas.create_image(data.width / 2 - 220, data.height / 2 + 230, image = data.discardPng)
 
 #---------------------- Pong Mode -------------------------- #
