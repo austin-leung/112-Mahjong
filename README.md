@@ -1,4 +1,4 @@
-# Mahjong 
+# 112 Mahjong 
 ##### 15-112 Term Project 
 
 ###### [Check out a demo here!](https://www.youtube.com/watch?v=S9wLGgVlL5U)
