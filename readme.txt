@@ -1,19 +1,27 @@
-Mahjong
+# Mahjong 
+##### 15-112 Term Project 
 
-This project is called Mahjong and is essentially the traditional Chinese tabletop game of Mahjong. It is a four player turn based tabletop game that involves swapping tiles to form a winning hand. It provides playability for both multiplayer and against computer AI, as well as an assist mode to help the player. 
+###### [Check out a demo here!](https://www.youtube.com/watch?v=S9wLGgVlL5U)
 
-It can be simply run through the __init__.py file and does not require any extra libraries. 
 
-"d": One can press "d" to view all tiles, including computer tiles, at once in order to see how the computers function.
 
-"q": During play, this brings you to the victory screen at the end of the game.
 
-"r": Allows you to go back to the start screen in the middle of a game.
+Mahjong is a traditional Chinese four player turn based tabletop game that involves swapping tiles to form a winning hand. This implementation provides playability in Tkinter for both multiplayer and against computer AI, as well as an assist mode to help the player. 
 
-"s": Toggles the sorting option from the home screen
+It can be simply run through the \_\_init\_\_.py  file and does not require any extra libraries. 
 
-"h": Prints the heuristic score for a hand when a tile is clicked on to show the outcome
-if it were to be discarded. Backbone of the AI.
+* *"d"* : One can press "d" to view all tiles, including computer tiles, at once in order to see how the computers function. 
 
-"a": Shifts between easy and hard AI
+* *"q"* : During play, this brings you to the victory screen at the end of the game. 
+
+
+* "r": Allows you to go back to the start screen in the middle of a game. 
+
+* *"s"* : Toggles the sorting option from the home screen 
+
+* *"h"* : Prints the heuristic score for a hand when a tile is clicked on to show the outcome if it were to be discarded. Backbone of the AI. 
+
+* *"a"* : Shifts between easy and hard AI
+
+Good luck!
 
