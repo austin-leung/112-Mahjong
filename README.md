@@ -25,3 +25,6 @@ It can be simply run through the \_\_init\_\_.py  file and does not require any 
 
 Good luck!
 
+![alt text](https://github.com/austin-leung/112-Mahjong/blob/master/miscImages/start.png?raw=true)
+
+![alt text](https://github.com/austin-leung/112-Mahjong/blob/master/miscImages/game.png?raw=true)
