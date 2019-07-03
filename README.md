@@ -1,7 +1,7 @@
 # 112 Mahjong 
 ##### 15-112 Term Project Fall 2018
 
-###### [Check out a demo here!](https://www.youtube.com/watch?v=S9wLGgVlL5U)
+### [Check out a demo here!](https://www.youtube.com/watch?v=S9wLGgVlL5U)
 
 
 
